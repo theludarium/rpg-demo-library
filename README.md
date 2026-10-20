@@ -24,7 +24,7 @@ Try-before-you-buy demos of tabletop roleplaying games. Each demo is a short int
 - `games/<game>/index.html`: one self-contained page per demo (no build step)
 - `store.js`: product list and Lemon Squeezy checkout links. Paste a checkout link into a product's `checkout` field and its demo shows a Buy button instead of "coming soon". Paid PDFs are never stored in this repo.
 
-Hosted with GitHub Pages from the `main` branch.
+Served at [theludarium.com/rpg-demo-library](https://theludarium.com/rpg-demo-library/). The website repo (theludarium/website) includes this repo as a git submodule and copies the demos in at build time, so a change here goes live after the submodule is updated there.
 
 ## Credits and license
 
