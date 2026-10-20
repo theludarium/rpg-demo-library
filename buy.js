@@ -1,7 +1,8 @@
 /* RPG Demo Library: always-available "Full adventure PDF" button.
    Include after store.js:  <script src="../../buy.js" data-product="product-id" defer></script>
    Shows a fixed corner button on every demo page. Clicking it opens a small panel
-   with the product and a Buy button (or "coming soon" while the checkout link is empty). */
+   with the product and a Buy button (or "coming soon" while the checkout link is empty),
+   plus a "Paperback on Amazon" button when the product has a paperback link. */
 (function () {
   var me = document.currentScript;
   var id = me && me.getAttribute('data-product');
@@ -40,7 +41,9 @@
       '.rdl-note{font-size:12.5px;color:#5A6474}',
       '.rdl-x{position:absolute;top:10px;right:10px;border:0;background:#EEF0F3;color:#14171C;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1}',
       '.rdl-x:focus-visible,.rdl-go:focus-visible{outline:3px solid #F2B33D;outline-offset:2px}',
-      '.rdl-panel{position:relative}'
+      '.rdl-panel{position:relative}',
+      '.rdl-pb{margin-top:10px}',
+      '.rdl-go.rdl-alt{background:#fff;color:#14171C;box-shadow:inset 0 0 0 2px #14171C}'
     ].join('');
     document.head.appendChild(css);
 
@@ -63,7 +66,7 @@
           '<button class="rdl-x" type="button" aria-label="Close">×</button>' +
           '<p class="rdl-k">The complete adventure</p>' +
           '<h2 id="rdl-title">' + esc(p.name) + '</h2>' +
-          '<p class="rdl-g">A PDF for ' + esc(p.game) + (p.pages ? ' · ' + p.pages + ' pages' : '') + '</p>' +
+          '<p class="rdl-g">' + (p.paperback ? 'For ' : 'A PDF for ') + esc(p.game) + (p.pages ? ' · ' + p.pages + ' pages' : '') + (p.paperback ? ' · PDF or paperback' : '') + '</p>' +
           '<ul>' +
             '<li>The free demo is Act One. The PDF has all three acts and every ending.</li>' +
             '<li>Ready-to-play characters, new foes, and custom random tables</li>' +
@@ -74,6 +77,9 @@
               ? '<a class="rdl-go" href="' + esc(p.checkout) + '" target="_blank" rel="noopener">Buy the PDF' + (p.price ? ' · ' + esc(p.price) : '') + '</a><span class="rdl-note">Instant download. Secure checkout by Lemon Squeezy.</span>'
               : '<span class="rdl-go" aria-disabled="true">PDF coming soon' + (p.price ? ' · ' + esc(p.price) : '') + '</span><span class="rdl-note">The store opens soon.</span>') +
           '</div>' +
+          (p.paperback
+            ? '<div class="rdl-row rdl-pb"><a class="rdl-go rdl-alt" href="' + esc(p.paperback) + '" target="_blank" rel="noopener">Paperback on Amazon</a><span class="rdl-note">Printed and shipped by Amazon.</span></div>'
+            : '') +
           '<p class="rdl-note" style="margin:12px 0 0">Your demo stays right where you left it.</p>' +
         '</div>';
       document.body.appendChild(scrim);

@@ -52,10 +52,11 @@ h2{font-family:var(--f-mono);font-size:13px;letter-spacing:.14em;text-transform:
 .shop{margin-top:44px}
 .shop-lede{max-width:70ch;color:var(--muted);margin:0 0 14px}
 .shop-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
-.shop-item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:2px solid var(--ink);background:#fff;padding:10px 12px;min-width:0}
+.shop-item{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 12px;border:2px solid var(--ink);background:#fff;padding:10px 12px;min-width:0}
 .shop-item b{display:block;font-size:15.5px;line-height:1.25}
 .shop-item small{display:block;color:var(--muted);font-size:13px}
-.shop-item .acts{display:flex;gap:6px;flex:none;align-items:center}
+.shop-item .acts{display:flex;flex-wrap:wrap;gap:6px;flex:none;align-items:center;max-width:100%}
+.shop-item > div:first-child{flex:1 1 110px}
 .shop-item a,.shop-item span.soon-btn{font-family:var(--f-mono);font-size:12.5px;font-weight:700;text-decoration:none;padding:6px 10px;border:2px solid var(--ink);white-space:nowrap}
 .shop-item a{color:var(--ink)}
 .shop-item a.buy{background:var(--ink);color:var(--paper)}
@@ -190,6 +191,7 @@ footer a{color:inherit}
     return '<div class="shop-item"><div style="min-width:0"><b>'+esc(p.name)+'</b><small>'+esc(p.game)+(p.pages?' · '+p.pages+' pages':'')+'</small></div><div class="acts">'+
       (p.demo?'<a href="'+esc(p.demo)+'">Demo</a>':'')+
       (p.checkout?'<a class="buy" href="'+esc(p.checkout)+'" target="_blank" rel="noopener">Buy '+esc(p.price||'')+'</a>':'<span class="soon-btn">Soon · '+esc(p.price||'')+'</span>')+
+      (p.paperback?'<a href="'+esc(p.paperback)+'" target="_blank" rel="noopener">Paperback</a>':'')+
       '</div></div>';}).join('');
 })();
 </script>
