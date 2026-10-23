@@ -16,7 +16,7 @@ Try-before-you-buy demos of tabletop roleplaying games. Each demo is a short int
 | Lasers & Feelings | Mayday at the Glass Moon, Act One | `games/lasers-feelings/` |
 | Dungeon World | The Salt King's Stair, Act One | `games/dungeon-world/` |
 | Cypher System | The Glass Comet, Act One | `games/cypher/` |
-| Pathfinder Second Edition (compatible) | The Sleepless Mill, Act One | `games/pf2e/` |
+| ORC License (fantasy) | The Sleepless Mill, Act One | `games/pf2e/` |
 
 ## Structure
 
@@ -68,6 +68,6 @@ The Salt King's Stair is based on Dungeon World by Sage LaTorra and Adam Koebel 
 
 This product is an independent production and is not affiliated with Monte Cook Games, LLC. It is published under the Cypher System Open License, found at http://csol.montecookgames.com. CYPHER SYSTEM and its logo are trademarks of Monte Cook Games, LLC in the U.S.A. and other countries. All Monte Cook Games characters and character names, and the distinctive likenesses thereof, are trademarks of Monte Cook Games, LLC. The demo is compatible with the Cypher System and implements its rules in our own words. "The Glass Comet" is © 2026 RPG Demo Library.
 
-### Pathfinder Second Edition (compatible)
+### The Sleepless Mill (ORC License)
 
-The Sleepless Mill uses game mechanics from Pathfinder Player Core and Pathfinder GM Core © 2023, Paizo Inc., under the ORC License (paizo.com/orclicense). It is compatible with Pathfinder Second Edition, but it is not an official Pathfinder product and is not published, endorsed, or approved by Paizo Inc. It uses no Paizo art, logos, setting, or trade dress. The adventure, setting, and characters are © 2026 RPG Demo Library, and its new game mechanics are released under the ORC License.
+The Sleepless Mill uses game mechanics from Pathfinder Player Core and Pathfinder GM Core © 2023, Paizo Inc., under the ORC License (paizo.com/orclicense). It is not an official Pathfinder product and is not published, endorsed, or approved by Paizo Inc. It uses no Paizo art, logos, setting, or trade dress. The adventure, setting, and characters are © 2026 RPG Demo Library, and its new game mechanics are released under the ORC License.

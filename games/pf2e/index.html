@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Sleepless Mill: Free Solo Demo</title>
-<meta name="description" content="Play Act One of The Sleepless Mill, a solo fantasy adventure compatible with Pathfinder Second Edition, free in your browser. Three actions a turn, real d20 checks, four degrees of success.">
+<meta name="description" content="Play Act One of The Sleepless Mill, a solo fantasy adventure built on open rules released under the ORC License, free in your browser. Three actions a turn, real d20 checks, four degrees of success.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;0,9..144,900;1,9..144,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans+Condensed:wght@400;600;700&display=swap">
@@ -160,7 +160,7 @@ body.norules .rule{display:none}
 <div class="wrap">
   <header class="masthead">
     <div>
-      <p class="eyebrow">A solo adventure compatible with Pathfinder Second Edition</p>
+      <p class="eyebrow">A solo fantasy adventure</p>
       <h1>The Sleepless Mill</h1>
       <p class="tagline">For nine nights, nobody in Dunmarrow has slept. The bread is good, the lamps are lit, and the great wheel of the mill on the hill is turning backward.</p>
     </div>
@@ -184,7 +184,7 @@ body.norules .rule{display:none}
     </details>
   </div>
   <div class="foot">
-    <p><b>Not an official Pathfinder product.</b> The Sleepless Mill is not published, endorsed, or specifically approved by Paizo Inc. It uses no Paizo art, logos, setting, characters, or trade dress. "Pathfinder Second Edition" is named only to say which rules this adventure works with. The adventure, its setting and characters are © 2026 RPG Demo Library. All rights reserved. Game mechanics are licensed as follows.</p>
+    <p><b>Not an official Pathfinder product.</b> The Sleepless Mill is not published, endorsed, or specifically approved by Paizo Inc. It uses no Paizo art, logos, setting, characters, or trade dress. Paizo's game is named only in the attribution the ORC License requires and to say where the full game is sold. The adventure, its setting and characters are © 2026 RPG Demo Library. All rights reserved. Game mechanics are licensed as follows.</p>
     <p><b>ORC Notice.</b> This product is licensed under the ORC License located at the Library of Congress at TX 9-307-067 and available online at various locations including paizo.com/orclicense, azoralaw.com/orclicense, and others. All warranties are disclaimed as set forth therein.</p>
     <p><b>Attribution Notice.</b> This product is based on the following Licensed Material: Pathfinder Player Core © 2023, Paizo Inc.; Designers: Logan Bonner, Jason Bulmahn, Stephen Radney-MacFarland, and Mark Seifter. Authors: Alexander Augunas, Kate Baker, Logan Bonner, Jason Bulmahn, Carlos Cabrera, Calder CaDavid, James Case, Eleanor Ferron, Steven Hammond, Joan Hong, Vanessa Hoskins, James Jacobs, Jenny Jarzabski, Erik Keith, Dustin Knight, Lyz Liddell, Luis Loza, Patchen Mortimer, Dennis Muldoon, Stephen Radney-MacFarland, Mikhail Rekun, David N. Ross, Michael Sayre, Mark Seifter, Kendra Leigh Speedling, Mark Thompson, Clark Valentine, Andrew White, Landon Winkler, and Linda Zayas-Palmer. Pathfinder GM Core © 2023, Paizo Inc.; Designers: Logan Bonner and Mark Seifter. Authors: Amirali Attar Olyaee, Logan Bonner, Creighton Broadhurst, Jason Bulmahn, James Case, Jesse Decker, Eleanor Ferron, Fabby Garza Marroquín, Jaym Gates, Matthew Goetz, James Jacobs, Brian R. James, Jenny Jarzabski, Dustin Knight, Jason LeMaitre, Lyz Liddell, Luis Loza, Ron Lundeen, Stephen Radney-MacFarland, David N. Ross, Michael Sayre, Mark Seifter, Owen K.C. Stephens, Amber Stewart, Clark Valentine, Landon Winkler, and Linda Zayas-Palmer. Please credit our Licensed Material as: The Sleepless Mill © 2026, RPG Demo Library.</p>
     <p><b>Reserved Material.</b> Reserved Material elements in this product include all elements designated as Reserved Material under the ORC License, including the title The Sleepless Mill, the RPG Demo Library name, all proper nouns (such as Dunmarrow, Maud Kestrel, Agnet Coyle, Tamsin Venn, Oda Venn, and the Hush), characters, dialogue, locations, plots, storylines, artwork, and trade dress. <b>Expressly Designated Licensed Material.</b> This product contains no Expressly Designated Licensed Material. All game mechanics shown here, including the grist-hound's statistics, are Licensed Material under the ORC License. Rules notes in this demo are summaries in our own words, not official rules text. The demo's code is not licensed under the ORC License.</p>
@@ -360,7 +360,7 @@ function markNight(n=1){ C.longNight = Math.min(6, C.longNight + n); render(); u
 
 /* ---------- start ---------- */
 async function start(){
-  nar('<strong>The Sleepless Mill</strong> is a fantasy adventure for one player, using the open rules of <strong>Pathfinder Second Edition</strong>: a d20 for every check, three actions every turn, and four ways each roll can turn out.');
+  nar('<strong>The Sleepless Mill</strong> is a fantasy adventure for one player, using open fantasy rules released under the ORC License: a d20 for every check, three actions every turn, and four ways each roll can turn out.');
   rule('A check is a d20 plus a modifier against a Difficulty Class (DC). Beat it by 10 for a critical success, meet it for a success, miss it for a failure, miss by 10 for a critical failure.');
   nar('You play <strong>Maud Kestrel</strong>, a human fighter who spent eleven years in a border company and can still sleep standing up. When a letter reached her that said <em>nobody here has slept in nine nights, please come,</em> she laughed, and then she saddled her horse.');
   render();
@@ -677,7 +677,7 @@ async function ending(){
     <h3>Act One complete.</h3>
     <p style="margin:0">${esc(C.name)} stands in the mill doorway with ${C.hp} Hit Points, a cold iron pin in her pack, and the Long Night at ${C.longNight} of 6. Somewhere below, under the stone, something is singing. The story continues in the full adventure.</p>
     <div class="product">
-      <div class="cov"><small>A solo adventure compatible with Pathfinder Second Edition</small>The Sleepless Mill</div>
+      <div class="cov"><small>A solo fantasy adventure</small>The Sleepless Mill</div>
       <div>
         <strong style="font-family:var(--f-display);font-size:20px">The Sleepless Mill: the complete adventure (PDF)</strong>
         <ul>
