@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Golden Shoe Job: Roll for Shoes Demo</title>
+<meta name="description" content="Play The Golden Shoe Job, a free solo Roll for Shoes adventure in your browser. Start with one skill, Do Anything, and grow new ones from every fail.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Nunito:ital,wght@0,400;0,700;0,800;0,900;1,400&display=swap">
+<script src="../../store.js"></script>
+<style>
+/* Look: a sneaker box. Kraft-paper stripes behind a white "game table", sticker labels for skills and results,
+   shoelace dashes for structure. Red for the player, grape for the GM, sunflower stickers for sixes. */
+:root{
+  --kraft:#EFD9B8; --kraft-2:#E8CDA4; --paper:#FFFDF8; --cream:#FFF4E0; --ink:#1E1B24; --muted:#5B5566; --line:#D9C6A8;
+  --red:#D63C2F; --red-d:#A82A20; --grape:#5E44B0; --grape-d:#46318A; --teal:#0F7A7A; --sun:#FFC93C; --sun-l:#FFE7A1;
+  --ok:#1C7C45; --bad:#B8332A;
+  --f-display:"Bowlby One", "Arial Black", Impact, sans-serif; --f-body:"Nunito", "Trebuchet MS", Arial, sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{overflow-x:hidden}
+body{margin:0;color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;overflow-x:hidden;
+  background:var(--kraft);background-image:repeating-linear-gradient(135deg,var(--kraft) 0 22px,var(--kraft-2) 22px 44px);background-attachment:fixed}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--grape);outline-offset:2px}
+.lace{height:8px;background:var(--ink);background-image:repeating-linear-gradient(90deg,transparent 0 10px,var(--paper) 10px 22px);background-size:100% 2px;background-position:0 3px;background-repeat:repeat-x}
+.proto{background:var(--ink);color:#E9E2F5;font-weight:700;font-size:13px;padding-block:7px;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));display:flex;gap:6px 16px;flex-wrap:wrap;justify-content:space-between}
+.proto b{color:var(--sun)}
+.wrap{max-width:1160px;margin:0 auto;padding-block:22px 60px;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+.masthead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;margin-bottom:20px}
+.eyebrow{display:inline-block;font-weight:900;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:3px 12px;transform:rotate(-1.5deg);margin:0 0 10px;box-shadow:2px 2px 0 var(--ink)}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(34px,7vw,64px);line-height:.98;margin:0;color:var(--red);text-shadow:3px 3px 0 var(--ink);letter-spacing:.01em}
+h1 .shoe{display:inline-block;width:.9em;height:.6em;vertical-align:.05em;margin-left:.15em}
+.tag{color:#3A3442;margin:12px 0 0;max-width:56ch;font-size:17.5px}
+.chip{font-family:var(--f-display);font-size:14px;background:var(--sun);border:2.5px solid var(--ink);padding:6px 14px;border-radius:999px;white-space:nowrap;transform:rotate(2deg);box-shadow:3px 3px 0 var(--ink)}
+
+.table{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:22px;align-items:start}
+.story{background:var(--paper);border:3px solid var(--ink);border-radius:18px;min-width:0;box-shadow:6px 6px 0 var(--ink);overflow:clip}
+.story-head{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:10px 18px;border-bottom:3px dashed var(--ink);background:var(--cream)}
+.story-head .scene{font-family:var(--f-display);font-size:18px;line-height:1.15;color:var(--red-d)}
+.toggles{display:flex;gap:4px 14px;flex-wrap:wrap}
+.toggle{font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--muted)}
+.toggle input{accent-color:var(--red);width:17px;height:17px}
+#log{padding:18px 20px 10px;display:flex;flex-direction:column;gap:12px}
+.line{max-width:66ch}
+.who{font-size:11.5px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--grape);display:block;margin-bottom:1px;font-style:normal}
+.npc{border-left:5px solid var(--grape);padding-left:12px;font-style:italic}
+.gm{border-left:5px dotted var(--teal);padding-left:12px;font-size:15.5px}
+.gm .who{color:var(--teal)}
+.you{align-self:flex-end;background:var(--red);color:#fff;padding:7px 14px;border-radius:16px 16px 3px 16px;max-width:min(54ch,90%);font-weight:800;border:2px solid var(--ink)}
+.rule{font-size:15px;line-height:1.45;background:#E1F3F1;border:2px solid var(--teal);padding:8px 12px 8px 12px;max-width:66ch;border-radius:12px;position:relative}
+.rule::before{content:"RULE";font-family:var(--f-display);font-size:11px;letter-spacing:.08em;color:#fff;background:var(--teal);border:2px solid var(--ink);border-radius:999px;padding:0 8px;margin-right:8px;display:inline-block;transform:rotate(-3deg)}
+body.norules .rule{display:none}
+.scenebreak{font-family:var(--f-display);font-size:26px;line-height:1.1;border-top:3px dashed var(--ink);padding-top:12px;margin-top:8px;color:var(--ink)}
+.scenebreak small{display:flex;align-items:center;gap:8px;font-family:var(--f-body);font-weight:900;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-d);margin-bottom:4px}
+.scenebreak small i{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);color:var(--ink);font-style:normal;letter-spacing:0;font-family:var(--f-display);font-size:13px}
+
+.stk{display:inline-block;font-family:var(--f-display);font-size:13px;line-height:1.3;padding:3px 11px;border:2px solid var(--ink);border-radius:999px;background:var(--sun);color:var(--ink);transform:rotate(-2deg);box-shadow:2px 2px 0 var(--ink);align-self:flex-start}
+.stk.ok{background:#C9F0D6} .stk.bad{background:#FFD5CF} .stk.xp{background:var(--sun)} .stk.new{background:var(--sun);font-size:15px;padding:5px 14px;transform:rotate(-3deg)}
+.stk.gm{background:#E3DBFA}
+.fam{display:inline-block;font-weight:900;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:0 7px;border-radius:999px;border:1.5px solid var(--ink);background:#eee;vertical-align:1px;white-space:nowrap}
+.f-sneak{background:#E2D9FB} .f-talk{background:#FFD9D3} .f-haggle{background:#FFEDB3} .f-snoop{background:#CDEFEF} .f-move{background:#D6E6FF} .f-tinker{background:#D8F2D0} .f-bowl{background:#FFD6EC} .f-improvise{background:#EEE}
+
+.rollrow{display:flex;flex-direction:column;gap:9px;border:2.5px solid var(--ink);border-radius:14px;padding:10px 12px;max-width:66ch;background:#fff}
+.rollrow .lbl{font-size:15px;font-weight:800}
+.sides{display:flex;flex-wrap:wrap;gap:10px 26px}
+.side{display:flex;flex-direction:column;gap:4px}
+.side .nm{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.dice{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.d6{width:42px;height:42px;border:2.5px solid var(--ink);border-radius:9px;background:#fff;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:5px;position:relative}
+.d6 i{width:7px;height:7px;border-radius:50%;background:var(--ink);place-self:center;visibility:hidden}
+.d6.mine{background:#FFF1EF;border-color:var(--red-d)}
+.d6.mine i{background:var(--red-d)}
+.d6.gmd{background:#F0ECFC;border-color:var(--grape-d)}
+.d6.gmd i{background:var(--grape-d)}
+.d6.six{background:var(--sun);border-color:var(--ink);box-shadow:0 0 0 3px rgba(255,201,60,.45)}
+.d6.six i{background:var(--ink)}
+.d6.xpd{border-style:dashed}
+.d6.xpd::after{content:"XP";position:absolute;top:-9px;right:-9px;font-family:var(--f-display);font-size:9px;background:var(--ink);color:var(--sun);border-radius:999px;padding:1px 4px}
+.ghost{opacity:.35;border-style:dashed}
+.tumble{animation:tumble .12s linear infinite}
+@keyframes tumble{50%{transform:rotate(12deg) translateY(-3px)}}
+.score{font-weight:800;font-size:15px}
+
+#choices{position:sticky;bottom:0;background:var(--cream);border-top:3px dashed var(--ink);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:10px}
+#choices:empty{display:none}
+.opt{flex:1 1 220px;min-width:0;text-align:left;border:2.5px solid var(--ink);background:#fff;padding:9px 12px;cursor:pointer;border-radius:14px;box-shadow:3px 3px 0 var(--ink)}
+.opt:hover{background:#FFF7E2}
+.opt:active{transform:translate(3px,3px);box-shadow:none}
+.opt b{display:block;font-weight:900;line-height:1.25}
+.opt span{display:block;font-size:13.5px;color:var(--muted);margin-top:3px;line-height:1.35}
+.opt span.fam{display:inline-block;margin:0 3px 0 0;color:var(--ink);font-size:11px}
+.opt.primary{background:var(--red);color:#fff}
+.opt.primary span{color:#FFE3DF}
+.opt.primary:hover{background:var(--red-d)}
+.opt.best{border-color:var(--ink);background:var(--sun-l)}
+.opt.best::after{content:"BEST FIT";display:inline-block;font-family:var(--f-display);font-size:10px;letter-spacing:.06em;background:var(--ink);color:var(--sun);border-radius:999px;padding:1px 8px;margin-top:5px}
+.opt:disabled{opacity:.45;cursor:not-allowed}
+.opt.roll{flex:1 1 100%;display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:center;padding:12px 16px}
+.opt.roll::before{content:"";grid-row:span 2;width:28px;height:28px;border-radius:7px;background:var(--sun);border:2.5px solid var(--ink);transition:transform .2s}
+.opt.roll:hover::before{transform:rotate(90deg)}
+.opt.roll b{font-size:19px}
+.note{flex:1 1 100%;font-size:13.5px;color:var(--muted);margin:0}
+.freeform{flex:1 1 100%;display:flex;flex-direction:column;gap:5px;border-top:2px dotted var(--line);padding-top:10px;margin-top:2px}
+.freeform label{font-weight:800;font-size:14px}
+.ffrow{display:flex;gap:8px;min-width:0}
+.ffrow input{flex:1 1 auto;min-width:0;border:2.5px solid var(--ink);border-radius:12px;padding:9px 12px;background:#fff}
+.go{flex:0 0 auto;border:2.5px solid var(--ink);border-radius:12px;background:var(--ink);color:#fff;font-weight:900;padding:9px 14px;cursor:pointer}
+.go:hover{background:#3A3442}
+
+/* sheet */
+.sheet{position:sticky;top:calc(12px + env(safe-area-inset-top,0px));background:var(--paper);border:3px solid var(--ink);border-radius:18px;min-width:0;box-shadow:6px 6px 0 var(--ink)}
+.sheet summary{list-style:none;cursor:pointer;padding:10px 14px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 10px;align-items:baseline;border-bottom:3px dashed var(--ink);background:var(--cream);border-radius:15px 15px 0 0}
+.sheet:not([open]) summary{border-bottom:0;border-radius:15px}
+.sheet summary::-webkit-details-marker{display:none}
+.sheet .snm{font-family:var(--f-display);font-size:18px;color:var(--red-d);overflow-wrap:anywhere}
+.sheet .mini{font-size:12.5px;font-weight:800;color:var(--muted);white-space:nowrap}
+.sheet-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:14px}
+.sec{font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);border-bottom:2px dotted var(--line);padding-bottom:2px;margin-bottom:7px;display:flex;justify-content:space-between;gap:8px}
+.xpbar{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.xpbar i{width:24px;height:24px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);display:grid;place-items:center;font-style:normal;font-family:var(--f-display);font-size:9px}
+.xpbar .none{font-size:14px;color:var(--muted);font-style:italic}
+.tree,.tree ul{list-style:none;margin:0;padding:0}
+.tree ul{margin-left:12px;padding-left:12px;border-left:2.5px dashed var(--line)}
+.tree li{margin:5px 0}
+.sk{display:inline-flex;align-items:center;gap:7px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:2px 4px 2px 11px;max-width:100%}
+.sk b{font-weight:900;font-size:14.5px;line-height:1.2;overflow-wrap:anywhere}
+.sk .lv{flex:0 0 auto;display:grid;place-items:center;min-width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-family:var(--f-display);font-size:13px;border:2px solid var(--ink)}
+.tree li.fresh > .sk{background:var(--sun-l)}
+.tree small{display:block;font-size:12.5px;color:var(--muted);margin:1px 0 0 12px}
+.pockets{list-style:none;margin:0;padding:0;font-size:14.5px;display:flex;flex-direction:column;gap:3px}
+.pockets li::before{content:"";display:inline-block;width:9px;height:9px;border:2px solid var(--ink);border-radius:2px;background:var(--sun);margin-right:7px;vertical-align:0}
+.pockets li.stkr::before{border-radius:50%;background:#FFD5CF}
+.empty{font-style:italic;color:var(--muted);font-size:14.5px;margin:0}
+
+.endcard{border:3px solid var(--ink);background:var(--cream);padding:16px 18px;display:flex;flex-direction:column;gap:10px;max-width:66ch;border-radius:18px;box-shadow:4px 4px 0 var(--ink)}
+.endcard h3{font-family:var(--f-display);font-weight:400;font-size:28px;line-height:1.05;margin:0;color:var(--red-d)}
+.endcard p{margin:0}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.cta{display:flex;flex-direction:column;gap:8px;background:var(--ink);color:#F4EEFF;padding:14px;border-radius:14px}
+.cta strong{font-family:var(--f-display);font-weight:400;font-size:19px;color:var(--sun)}
+.ctabtn{display:inline-block;align-self:flex-start;text-decoration:none;background:var(--sun);color:var(--ink);font-family:var(--f-display);padding:10px 16px;border-radius:12px;border:2.5px solid var(--paper);font-size:16px}
+.ctabtn:hover{background:#FFD866}
+.learned{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 14px;font-size:15px}
+.learned li::before{content:"\2713  ";font-weight:900;color:var(--ok)}
+.learned li.no{color:var(--muted)} .learned li.no::before{content:"\25CB  ";color:var(--muted)}
+.fine{font-size:13px;color:var(--muted);line-height:1.5}
+.about{margin-top:22px;background:var(--paper);border:3px solid var(--ink);border-radius:16px;max-width:90ch;box-shadow:4px 4px 0 var(--ink)}
+.about summary{cursor:pointer;padding:10px 16px;font-family:var(--f-display);font-size:16px}
+.about div{padding:0 16px 14px;font-size:15.5px}
+.about p{margin:.4em 0}
+.foot{font-size:13.5px;margin-top:18px;max-width:90ch;line-height:1.55;color:#3A3442}
+
+@media (max-width: 880px){
+  .table{grid-template-columns:minmax(0,1fr)}
+  .sheet{order:-1;top:env(safe-area-inset-top,0px);z-index:5}
+  .sheet-body{max-height:60vh;overflow:auto}
+  #log{padding:14px 14px 8px}
+}
+@media (max-width: 420px){
+  .d6{width:38px;height:38px}
+  .scenebreak{font-size:22px}
+}
+@media (prefers-reduced-motion: reduce){ .tumble{animation:none} .opt.roll::before{transition:none} .opt:active{transform:none} }
+</style>
+</head>
+<body>
+<div class="lace" aria-hidden="true"></div>
+<div class="proto"><span><a href="../../" style="color:inherit">&larr; All demos</a> &middot; <b>FREE DEMO</b> &middot; The whole adventure</span><span>Not an official Roll for Shoes product</span></div>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">A solo adventure for Roll for Shoes</p>
+      <h1>The Golden Shoe <span style="white-space:nowrap">Job<svg class="shoe" viewBox="0 0 60 40" aria-hidden="true"><path d="M4 30 C4 18 8 10 14 8 L22 8 C24 14 30 17 38 18 C48 19 56 22 56 30 Z" fill="#FFC93C" stroke="#1E1B24" stroke-width="3.5" stroke-linejoin="round"/><path d="M2 30 H58 V35 H2 Z" fill="#FFFDF8" stroke="#1E1B24" stroke-width="3.5" stroke-linejoin="round"/><path d="M20 14 L26 12 M23 18 L29 16 M27 21 L32 19" stroke="#1E1B24" stroke-width="2.5" stroke-linecap="round"/></svg></span></h1>
+      <p class="tag">Somebody stole your bowling league's golden trophy shoe. The scorch marks lead to a dragon's garage sale. You know exactly one skill: Do Anything. Everything else, you learn the hard way.</p>
+    </div>
+    <span class="chip">Free &middot; about 15 to 20 minutes</span>
+  </header>
+  <div class="table">
+    <main class="story" aria-live="polite">
+      <div class="story-head">
+        <span class="scene" id="sceneName">Before you begin</span>
+        <span class="toggles">
+          <label class="toggle"><input type="checkbox" id="rulesToggle" checked> Show rules</label>
+          <label class="toggle"><input type="checkbox" id="autoToggle"> Auto-roll</label>
+        </span>
+      </div>
+      <div id="log"></div>
+      <div id="choices"></div>
+    </main>
+    <details class="sheet" id="sheet" open>
+      <summary><span class="snm" id="sumName">Your bowler</span><span class="mini" id="sumMini">not named yet</span></summary>
+      <div class="sheet-body" id="sheetBody"><p class="empty">Your character appears here: your XP, your skill tree as it grows, and whatever ends up in your pockets.</p></div>
+    </details>
+  </div>
+  <details class="about">
+    <summary>About this demo</summary>
+    <div>
+      <p>Roll for Shoes is a tiny roleplaying game with six rules. You start with one skill, Do Anything, and every new skill comes from what happens in play. This page plays the Game Master for you. The dice are real random rolls, and every roll follows the game's rules.</p>
+      <p>Based on Roll for Shoes by Ben Wray (<a href="https://rollforshoes.com/" target="_blank" rel="noopener">rollforshoes.com</a>), dedicated to the public domain under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0</a>. Rules restated in our own words. Not an official Roll for Shoes product. The adventure is &copy; 2026 RPG Demo Library.</p>
+      <p><a href="https://rollforshoes.com/" target="_blank" rel="noopener">Read the full free rules</a></p>
+    </div>
+  </details>
+  <p class="foot">Based on Roll for Shoes by Ben Wray (<a href="https://rollforshoes.com/" target="_blank" rel="noopener">rollforshoes.com</a>), dedicated to the public domain under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0</a>. Rules restated in our own words. Not an official Roll for Shoes product. The adventure is &copy; 2026 RPG Demo Library. <a href="https://rollforshoes.com/" target="_blank" rel="noopener">Read the full free rules</a>.</p>
+</div>
+
+<script>
+(() => {
+/* ENGINE START: pure rules code, no page access. Checked in node by the build notes. */
+const FAM = {
+  sneak:  {label:'Sneak',  verb:'Sneak Past',  names:['Sneak','Tiptoe in Squeaky Shoes','Be Very Quiet'], kw:['sneak','hid','hide','quiet','tiptoe','creep','slip','shadow','stealth','unseen','duck','lurk','eavesdrop','overhear','blend']},
+  talk:   {label:'Talk',   verb:'Talk to',     names:['Talk to Anyone','Charm','Make Small Talk'], kw:['talk','ask','chat','charm','compliment','convinc','persuad','flatter','explain','tell','say','beg','plead','friend','invite','apolog','sing','joke','yell','shout','promise','thank']},
+  haggle: {label:'Haggle', verb:'Haggle with', names:['Haggle','Drive a Hard Bargain','Know a Good Deal'], kw:['haggl','buy','sell','trade','offer','deal','bargain','pay','price','coin','money','swap','barter','cash','bid']},
+  snoop:  {label:'Snoop',  verb:'Snoop Around',names:['Snoop','Notice Things','Find Stuff'], kw:['look','search','find','snoop','inspect','examin','notic','rummag','read','investig','sniff','track','clue','spot','study','check','scan','peek','dig']},
+  move:   {label:'Move',   verb:'Outrun',      names:['Run Fast','Climb Things','Dodge'], kw:['run','climb','jump','dash','dodg','hop','leap','sprint','crawl','scrambl','balanc','swing','chase','flee','escap','race','ride','surf','grab']},
+  tinker: {label:'Tinker', verb:'Tinker with', names:['Tinker','Fix Stuff','Pick Locks'], kw:['fix','build','pick','lock','rig','tinker','repair','jam','wire','tool','unscrew','craft','make','machine','gadget','trap','fog','switch']},
+  bowl:   {label:'Bowl',   verb:'Bowl at',     names:['Bowl','Throw Things','Hit What I Aim At'], kw:['bowl','throw','roll','toss','aim','strike','pin','hurl','pitch','ball','spare','lob','fling']},
+  improvise:{label:'Improvise', verb:'Improvise with', names:['Improvise','Wing It','Make It Up as I Go'], kw:[]}
+};
+const DET = {
+  dragon: {label:'the dragon', noun:'Dragons', kw:['dragon','smolder','madame','boss','her','she','claw']},
+  kobolds:{label:'kobolds',    noun:'Kobolds', kw:['kobold','pip','gristle','guard','staff','helper','vest']},
+  people: {label:'people',     noun:'Folks',   kw:['earl','shopper','family','crowd','people','okafor','lady','man','manager','neighbor','everyone','someone']},
+  junk:   {label:'junk',       noun:'Junk',    kw:['junk','table','canoe','lamp','bin','stuff','box','case','sticker','cart','shelf','pile','door','machine','melon','trophy','shoe']}
+};
+const DIFF = ['', 'easy', 'tricky', 'hard', 'very hard'];
+const sameTags = (a, b) => a.length === b.length && a.every(t => b.includes(t));
+// A skill fits an action when every one of its tags is on the action. Do Anything has no tags, so it fits everything.
+const fits = (skill, tags) => skill.tags.every(t => tags.includes(t));
+function rankFits(skills, tags){
+  return skills.filter(s => fits(s, tags)).sort((a, b) => b.level - a.level || b.tags.length - a.tags.length);
+}
+// The new skill is one level above the skill rolled and one step more specific: it keeps the parent's tags and adds the next tag of this action.
+function childTags(skills, parent, actionTags, level){
+  const t = parent.tags.slice();
+  for (const a of actionTags){
+    if (t.includes(a)) continue;
+    t.push(a);
+    if (!skills.some(s => sameTags(s.tags, t) && s.level >= level)) return t.slice();
+  }
+  if (!skills.some(s => sameTags(s.tags, parent.tags) && s.level >= level)) return parent.tags.slice();
+  return null;
+}
+function wordsOf(text){ return String(text).toLowerCase().split(/[^a-z]+/).filter(Boolean); }
+function classify(text){
+  const w = wordsOf(text);
+  let fam = 'improvise', fs = 0, det = null, ds = 0;
+  for (const [k, d] of Object.entries(FAM)){ let s = 0; for (const x of w) for (const kw of d.kw) if (x.startsWith(kw)) { s++; break; } if (s > fs){ fs = s; fam = k; } }
+  for (const [k, d] of Object.entries(DET)){ let s = 0; for (const x of w) for (const kw of d.kw) if (x === kw || (kw.length > 3 && x.startsWith(kw))) { s++; break; } if (s > ds){ ds = s; det = k; } }
+  return {fam, det};
+}
+const clampDice = n => Math.max(1, Math.min(4, n));
+const sum = a => a.reduce((x, y) => x + y, 0);
+// Higher total wins. A tie is not higher, so it goes to the GM.
+const beats = (mine, theirs) => sum(mine) > sum(theirs);
+// Advancement: all sixes earns a skill. XP can turn non-six dice into sixes, 1 XP each, for advancement only.
+function advance(mine, xp){
+  const nonSix = mine.filter(v => v !== 6).length;
+  return {allSix: nonSix === 0, nonSix, canSpend: nonSix > 0 && xp >= nonSix};
+}
+/* ENGINE END */
+
+let autoRoll = false;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s);
+const logEl = $('#log'), choicesEl = $('#choices');
+const d6 = () => 1 + Math.floor(Math.random() * 6);
+const sleep = ms => new Promise(r => setTimeout(r, reduced ? 0 : ms));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SAVE = 'rfs-save';
+
+try { if (localStorage.getItem('rfs-rules') === 'off') { $('#rulesToggle').checked = false; document.body.classList.add('norules'); } } catch(e){}
+try { if (localStorage.getItem('rfs-auto') === 'on') { $('#autoToggle').checked = true; autoRoll = true; } } catch(e){}
+$('#rulesToggle').addEventListener('change', e => { document.body.classList.toggle('norules', !e.target.checked); try { localStorage.setItem('rfs-rules', e.target.checked ? 'on' : 'off'); } catch(err){} });
+$('#autoToggle').addEventListener('change', e => { autoRoll = e.target.checked; try { localStorage.setItem('rfs-auto', autoRoll ? 'on' : 'off'); } catch(err){} });
+
+/* ---------- state ---------- */
+const fresh = () => ({name:'', skills:[{id:'any', name:'Do Anything', level:1, tags:[], parent:null}], xp:0, flags:{}, used:new Set(), stats:{rolls:0, fails:0, sixes:0, spent:0}, pts:0, path:null, scene:0, nextId:1, freshId:null});
+let S = fresh();
+function save(){
+  try { localStorage.setItem(SAVE, JSON.stringify({...S, used:[...S.used], v:1})); } catch(e){}
+}
+function loadSave(){
+  try { const raw = localStorage.getItem(SAVE); if (!raw) return null; const o = JSON.parse(raw); if (!o || o.v !== 1 || !Array.isArray(o.skills)) return null; o.used = new Set(o.used || []); return o; } catch(e){ return null; }
+}
+function clearSave(){ try { localStorage.removeItem(SAVE); } catch(e){} }
+
+/* ---------- log ---------- */
+function add(cls, html){ const el = document.createElement('div'); if (cls) el.className = cls; el.innerHTML = html; logEl.appendChild(el); requestAnimationFrame(() => el.scrollIntoView({block:'nearest', behavior: reduced ? 'auto' : 'smooth'})); return el; }
+const nar = h => add('line', h);
+const npc = (who, h) => add('line npc', `<span class="who">${who}</span>${h}`);
+const gm = h => add('line gm', `<span class="who">GM</span>${h}`);
+const you = h => add('line you', h);
+const sticker = (cls, h) => add('stk ' + cls, h);
+function rule(key, h){ if (S.used.has('rule-' + key)) return; S.used.add('rule-' + key); add('rule', h); }
+function scene(num, name){ $('#sceneName').textContent = name; add('scenebreak', `<small><i>${num}</i>Scene ${num} of 6</small>${esc(name)}`); render(); }
+function choose(opts, input){
+  return new Promise(res => {
+    choicesEl.innerHTML = '';
+    opts.forEach(o => {
+      if (o.note){ const p = document.createElement('p'); p.className = 'note'; p.innerHTML = o.note; choicesEl.appendChild(p); return; }
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt' + (o.cls ? ' ' + o.cls : '');
+      b.innerHTML = `<b>${o.label}</b>${o.sub ? `<span>${o.sub}</span>` : ''}`; if (o.disabled) b.disabled = true;
+      b.addEventListener('click', () => { choicesEl.innerHTML = ''; if (o.say !== false) you(o.say || o.label); res({id:o.id}); });
+      choicesEl.appendChild(b);
+    });
+    if (input){
+      const f = document.createElement('form'); f.className = 'freeform';
+      f.innerHTML = `<label for="ff">${input.label}</label><div class="ffrow"><input id="ff" type="text" maxlength="${input.max || 90}" placeholder="${esc(input.placeholder)}" autocomplete="off" enterkeyhint="go"><button type="submit" class="go">${input.button}</button></div>`;
+      f.addEventListener('submit', e => { e.preventDefault(); const inp = f.querySelector('input'); const v = inp.value.replace(/\s+/g, ' ').trim(); if (!v){ inp.focus(); return; } choicesEl.innerHTML = ''; if (input.say !== false) you(esc(v)); res({text:v}); });
+      choicesEl.appendChild(f);
+    }
+    requestAnimationFrame(() => choicesEl.scrollIntoView({block:'nearest', behavior: reduced ? 'auto' : 'smooth'}));
+    const first = choicesEl.querySelector('button:not(:disabled)'); if (first && matchMedia('(pointer:fine)').matches) first.focus({preventScroll:true});
+  });
+}
+const cont = (label = 'Continue') => choose([{id:'c', label, cls:'primary', say:false}]);
+async function waitRoll(label, sub){ if (autoRoll) return; await choose([{id:'r', label, sub, cls:'primary roll', say:false}]); }
+
+/* ---------- dice ---------- */
+const PIPS = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function dieEl(cls){ const e = document.createElement('div'); e.className = 'd6 ghost ' + cls; e.setAttribute('role', 'img'); e.setAttribute('aria-label', 'die, not rolled yet'); for (let i = 0; i < 9; i++) e.appendChild(document.createElement('i')); return e; }
+function face(e, v){ [...e.children].forEach((p, i) => p.style.visibility = (PIPS[v] || []).includes(i) ? 'visible' : 'hidden'); e.setAttribute('aria-label', 'die showing ' + v); }
+async function tumble(es){ es.forEach(e => e.classList.add('tumble')); for (let t = 0; t < (reduced ? 1 : 9); t++){ es.forEach(e => face(e, d6())); await sleep(60); } es.forEach(e => e.classList.remove('tumble')); }
+const famTag = f => `<span class="fam f-${f}">${FAM[f].label}</span>`;
+function fitText(tags){
+  if (!tags.length) return 'fits anything';
+  const parts = tags.map(t => FAM[t] ? FAM[t].label : DET[t] ? DET[t].label : null);
+  const named = parts.filter(Boolean);
+  const exact = parts.length > named.length;
+  return 'fits ' + named.join(' + ') + (exact ? ' (this exact move)' : '');
+}
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const dice = n => `${n} ${n === 1 ? 'die' : 'dice'}`;
+const titleCase = t => t.replace(/\b[a-z]/g, c => c.toUpperCase());
+function nameFromText(t){
+  const w = String(t).replace(/[^A-Za-z' ]+/g, ' ').trim().replace(/^(i'll|i will|i try to|i want to|i|let me|try to)\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 4).join(' ');
+  return w ? titleCase(w.toLowerCase()) : '';
+}
+const skillById = id => S.skills.find(s => s.id === id);
+
+/* ---------- the core attempt ----------
+   beat: {id, detail, opts:[{id,label,say,tags:[fam,det],diff,n3,win,fail,set,setFail,if}], free:{win,fail,set,setFail,diff}, mod:{n,why}} */
+function gmDice(opt, beat){
+  let n = opt.diff; const why = [];
+  if (beat.mod && beat.mod.why){ n += beat.mod.n || 0; why.push(beat.mod.why); }
+  if (opt.tags[0] === 'sneak' && S.flags.watched && !S.flags.stickerOff){ n += 1; why.push('+1 for the sticker on your back'); }
+  n = clampDice(n);
+  return {n, why};
+}
+function optSub(o, beat){
+  const g = gmDice(o, beat);
+  const best = rankFits(S.skills, [...o.tags, beat.id + '-' + o.id])[0];
+  return `${famTag(o.tags[0])} ${DET[o.tags[1]] ? 'at ' + DET[o.tags[1]].label : ''} &middot; GM rolls ${dice(g.n)} (${DIFF[g.n]}${g.why.length ? ', ' + g.why.join(', ') : ''}) &middot; your best fit: ${esc(best.name)} ${best.level}`;
+}
+async function attempt(beat){
+  const opts = beat.opts.filter(o => o.if === undefined || o.if);
+  rule('roll', 'To try something, say what you do and pick a skill that fits. Roll as many six-sided dice as that skill\'s level. The GM rolls dice against you. If your total is higher, it happens. A tie goes to the GM.');
+  rule('free', 'Pick an idea below, or type your own. If you type one, the GM decides what kind of move it is, and that decides which of your skills fit.');
+  const pick = await choose(opts.map(o => ({id:o.id, label:o.label, sub:optSub(o, beat), say:o.say || o.label})),
+    {label:'Or describe what you try', placeholder: beat.hint || 'I try to...', button:'Try it'});
+  let opt, free = false;
+  if (pick.text){
+    const c = classify(pick.text);
+    const det = c.det || beat.detail;
+    const match = opts.filter(o => o.tags[0] === c.fam).sort((a, b) => (b.tags[1] === det) - (a.tags[1] === det))[0];
+    if (match && c.fam !== 'improvise'){
+      opt = {...match, typed:pick.text};
+      gm(`That sounds like ${famTag(c.fam)}. It plays out like "${esc(match.label)}".`);
+    } else {
+      free = true;
+      opt = {id:'free', label:pick.text, typed:pick.text, tags:[c.fam, det], diff:(beat.free && beat.free.diff) || 2, n3:[], win:beat.free.win, fail:beat.free.fail, set:beat.free.set, setFail:beat.free.setFail};
+      gm(`Sure, try it. That sounds like ${famTag(c.fam)}, aimed at ${DET[det].label}.`);
+    }
+  }
+  else opt = opts.find(o => o.id === pick.id);
+  const tags = [...opt.tags, beat.id + '-' + opt.id];
+  S.used.add('fam-' + opt.tags[0]);
+
+  // pick a skill
+  const ranked = rankFits(S.skills, tags);
+  const nofit = S.skills.length - ranked.length;
+  if (S.skills.length > 1) rule('fit', 'Use a skill that fits what you are doing. The more specific a skill is, the higher its level and the more dice it rolls. Do Anything always fits, but it only rolls 1 die.');
+  let skill = ranked[0];
+  if (S.skills.length > 1){
+    const items = ranked.map((s, i) => ({id:s.id, label:`${esc(s.name)} ${s.level}`, sub:`Roll ${dice(s.level)} &middot; ${fitText(s.tags)}`, cls: i === 0 ? 'best' : '', say:false}));
+    if (nofit) items.push({note:`${plural(nofit, 'skill')} on your sheet ${nofit === 1 ? 'does' : 'do'} not fit this move.`});
+    const sp = await choose(items);
+    skill = skillById(sp.id);
+    if (skill !== ranked[0]) S.used.add('chooseLower');
+    if (skill.level > 1) S.used.add('useSkill');
+  }
+  const g = gmDice(opt, beat);
+  if (g.n >= 2) rule('gm', 'The GM decides how hard something is by how many dice to roll against you: 1 for easy, 2 for tricky, 3 for hard.');
+  if (g.why.length) S.used.add('gmMod');
+
+  // the roll
+  const row = add('rollrow', `<span class="lbl">${esc(skill.name)} ${skill.level} vs. the GM's ${g.n}d6 (${DIFF[g.n]})</span>`);
+  const sides = document.createElement('div'); sides.className = 'sides'; row.appendChild(sides);
+  const mk = (title) => { const s = document.createElement('div'); s.className = 'side'; s.innerHTML = `<span class="nm">${title}</span>`; const d = document.createElement('div'); d.className = 'dice'; s.appendChild(d); sides.appendChild(s); return d; };
+  const myBox = mk('Your dice'), gmBox = mk('GM dice');
+  const myEls = Array.from({length:skill.level}, () => dieEl('mine')); myEls.forEach(e => myBox.appendChild(e));
+  const gmEls = Array.from({length:g.n}, () => dieEl('gmd')); gmEls.forEach(e => gmBox.appendChild(e));
+  await waitRoll(`Roll ${dice(skill.level)}`, `${esc(skill.name)} ${skill.level} against the GM's ${g.n}. Beat their total to succeed.`);
+  [...myEls, ...gmEls].forEach(e => e.classList.remove('ghost'));
+  await tumble([...myEls, ...gmEls]);
+  const mine = myEls.map(() => d6()), theirs = gmEls.map(() => d6());
+  mine.forEach((v, i) => { face(myEls[i], v); if (v === 6) myEls[i].classList.add('six'); });
+  theirs.forEach((v, i) => face(gmEls[i], v));
+  const win = beats(mine, theirs), tie = sum(mine) === sum(theirs);
+  S.stats.rolls++;
+  const sc = document.createElement('span'); sc.className = 'score';
+  const tot = v => v.length > 1 ? `${v.join(' + ')} = ${sum(v)}` : String(sum(v));
+  sc.textContent = `You: ${tot(mine)}. GM: ${tot(theirs)}.`;
+  row.appendChild(sc);
+  const st = document.createElement('span'); st.className = 'stk ' + (win ? 'ok' : 'bad');
+  st.textContent = win ? 'Success' : (tie ? 'Tie: the GM wins' : 'Fail');
+  row.appendChild(st);
+  if (win) S.used.add('win'); else S.used.add('fail');
+  if (tie){ S.used.add('tie'); rule('tie', 'Your total has to be higher than the GM\'s. A tie is not higher, so the GM wins it.'); }
+
+  // the story
+  nar(win ? opt.win : opt.fail);
+  ((win ? opt.set : opt.setFail) || []).forEach(f => S.flags[f] = true);
+
+  // advancement
+  const adv = advance(mine, S.xp);
+  if (adv.allSix){
+    S.stats.sixes++; S.used.add('allSix');
+    sticker('new', skill.level === 1 ? 'A six!' : 'All sixes!');
+    rule('six', 'Roll all sixes and you learn a new skill. It is about what you just did, and it is one level higher than the skill you rolled. You get to name it.');
+    await learn(skill, tags, opt);
+  } else if (adv.canSpend){
+    rule('spend', 'You can spend XP to turn dice into sixes, 1 XP per die. It only counts toward learning a new skill. It never turns a fail into a success.');
+    const c = await choose([
+      {id:'spend', label:`Spend ${adv.nonSix} XP to learn a new skill`, sub:`Turns ${dice(adv.nonSix)} into sixes, 1 XP each. Your ${win ? 'success' : 'fail'} stays a ${win ? 'success' : 'fail'}.`, cls:'primary', say:false},
+      {id:'keep', label:'Keep my XP', sub:`You have ${S.xp} XP. Save it for a roll with more sixes, or a bigger skill.`, say:false}]);
+    if (c.id === 'spend'){
+      S.xp -= adv.nonSix; S.stats.spent += adv.nonSix; S.used.add('spend');
+      myEls.forEach((e, i) => { if (mine[i] !== 6){ face(e, 6); e.classList.add('six', 'xpd'); e.setAttribute('aria-label', 'die turned to 6 with XP'); } });
+      sticker('xp', `Spent ${adv.nonSix} XP: all sixes`);
+      render();
+      const got = await learn(skill, tags, opt);
+      if (!got){ S.xp += adv.nonSix; S.stats.spent -= adv.nonSix; render(); gm('Your XP comes back to you.'); }
+    }
+  }
+  if (!win){
+    S.xp++; S.stats.fails++; S.used.add('xp');
+    sticker('xp', `+1 XP (you have ${S.xp})`);
+    rule('xp', 'When you fail, you earn 1 XP. Failing is how you get better.');
+  }
+  render();
+  return {win, opt, free};
+}
+
+async function learn(parent, actionTags, opt){
+  const level = parent.level + 1;
+  const tags = childTags(S.skills, parent, actionTags, level);
+  if (!tags){ gm('You already know everything this move can teach you. No new skill this time.'); return false; }
+  const fam = FAM[tags[0]] || FAM.improvise;
+  let ideas;
+  if (tags.length === 1) ideas = fam.names.slice();
+  else if (tags.length === 2) ideas = [...(opt.n3 || []), `${fam.verb} ${DET[tags[1]] ? DET[tags[1]].noun : 'Anything'}`];
+  else ideas = [...(opt.n3 || []).map(n => 'Really ' + n), `${fam.verb} ${DET[tags[1]] ? DET[tags[1]].noun : 'Anything'}, Expertly`];
+  if (opt.typed){ const n = nameFromText(opt.typed); if (n) ideas.unshift(n); }
+  const taken = new Set(S.skills.map(s => s.name.toLowerCase()));
+  ideas = [...new Set(ideas)].filter(n => !taken.has(n.toLowerCase())).slice(0, 3);
+  if (!ideas.length) ideas = [`${fam.label} Like a Pro`];
+  gm(`You learn a new level ${level} skill. It grows out of ${esc(parent.name)} and ${fitText(tags)}. What do you call it?`);
+  const c = await choose(ideas.map((n, i) => ({id:'n' + i, label:esc(n), sub:`${esc(n)} ${level} &middot; ${fitText(tags)}`, say:false})),
+    {label:'Or name it yourself', placeholder:'Name your skill', button:'Name it', max:40, say:false});
+  const name = (c.text ? c.text : ideas[Number(c.id.slice(1))]).slice(0, 40);
+  const sk = {id:'s' + (S.nextId++), name, level, tags, parent:parent.id};
+  S.skills.push(sk); S.freshId = sk.id;
+  if (level >= 3) S.used.add('lvl3');
+  sticker('new', `New skill: ${esc(name)} ${level}`);
+  render();
+  return true;
+}
+
+/* ---------- sheet ---------- */
+const POCKET = {ball:'Big Linda, the House Ball', coupon:'Coupon: one free shoe rental', disguise:'Trench coat, sunglasses, fake mustache', whistle:'A coach\'s whistle (and one sock)', fog:'A fog machine', pricelist:'Smolder\'s price list', shiny:'A dented disco ball', duck:'A lamp shaped like a duck', route:'A way out, memorized', warm:'A warmed-up bowling arm', tote:'A free tote bag', secret:'A secret: Smolder wants to bowl', shoe:'THE GOLDEN SHOE'};
+const STICKERS = {vip:'VIP sticker on your shirt', watched:'Sticker on your back: WATCH THIS ONE'};
+function tree(pid){
+  const kids = S.skills.filter(s => s.parent === pid);
+  if (!kids.length) return '';
+  return `<ul>${kids.map(s => `<li class="${s.id === S.freshId ? 'fresh' : ''}"><span class="sk"><b>${esc(s.name)}</b><span class="lv" aria-label="level ${s.level}">${s.level}</span></span><small>${fitText(s.tags)}</small>${tree(s.id)}</li>`).join('')}</ul>`;
+}
+function render(){
+  if (!S.name) return;
+  $('#sumName').textContent = S.name;
+  $('#sumMini').textContent = `${plural(S.skills.length, 'skill')} · ${S.xp} XP`;
+  const pockets = Object.keys(POCKET).filter(k => S.flags[k]).map(k => `<li>${POCKET[k]}</li>`).join('') +
+    Object.keys(STICKERS).filter(k => S.flags[k] && !(k === 'watched' && S.flags.stickerOff)).map(k => `<li class="stkr">${STICKERS[k]}</li>`).join('');
+  $('#sheetBody').innerHTML = `
+    <div><div class="sec"><span>XP</span><span>${S.xp}</span></div><div class="xpbar">${S.xp ? Array.from({length:S.xp}, () => '<i aria-hidden="true">XP</i>').join('') : '<span class="none">None yet. Fail something.</span>'}</div></div>
+    <div><div class="sec"><span>Skill tree</span><span>${plural(S.skills.length, 'skill')}</span></div><div class="tree">${tree(null)}</div></div>
+    <div><div class="sec"><span>Pockets</span></div>${pockets ? `<ul class="pockets">${pockets}</ul>` : '<p class="empty">Empty, except lint.</p>'}</div>`;
+}
+
+/* ---------- the adventure ---------- */
+const DEFAULT_NAMES = ['Dee Dee Strike', 'Marvin Gutterball', 'Spare Change Sally'];
+async function start(){
+  const saved = loadSave();
+  if (saved && saved.scene >= 1 && saved.name){
+    nar(`Welcome back, <strong>${esc(saved.name)}</strong>. You stopped at the start of scene ${saved.scene}, with ${plural(saved.skills.length, 'skill')} and ${saved.xp} XP.`);
+    const c = await choose([{id:'go', label:`Continue from scene ${saved.scene}`, cls:'primary', say:false}, {id:'new', label:'Start over', sub:'Back to Do Anything 1.', say:false}]);
+    if (c.id === 'go'){ S = saved; render(); return run(saved.scene); }
+    clearSave();
+  }
+  nar('<strong>Roll for Shoes</strong> is a roleplaying game with six rules. It fits on one page, and you learn it by playing. Your character starts out knowing how to do exactly one thing: anything. Badly.');
+  rule('start', 'Every character starts with one skill: Do Anything, at level 1. Every other skill gets made up during play, from what you roll.');
+  nar('In this adventure you bowl for the Gutter Buddies, the worst team in the Saturday league at Lucky Strike Lanes. What is your name?');
+  const c = await choose(DEFAULT_NAMES.map((n, i) => ({id:'n' + i, label:n, say:`I'm ${n}.`})), {label:'Or type your own', placeholder:'Your bowler\'s name', button:'That\'s me', max:30, say:false});
+  S.name = (c.text || DEFAULT_NAMES[Number(c.id.slice(1))]).slice(0, 30);
+  if (c.text) you(`I'm ${esc(S.name)}.`);
+  render();
+  nar(`Your character sheet is short. It says <strong>${esc(S.name)}</strong>, and under that, <strong>Do Anything 1</strong>. That's it. That's the whole sheet.`);
+  await cont('Lace up and begin');
+  await run(1);
+}
+async function run(from){
+  const SCENES = [null, s1, s2, s3, s4, s5, s6];
+  for (let i = from; i <= 6; i++){ S.scene = i; save(); await SCENES[i](); }
+  await ending();
+}
+
+async function s1(){
+  scene(1, 'Lucky Strike Lanes');
+  nar('Saturday morning. Last week, by a miracle nobody can explain, the Gutter Buddies won the <strong>Golden Shoe</strong>: an old bowling shoe, painted gold and glued to a trophy. It is the nicest thing your team has ever owned.');
+  nar('This morning the trophy case is open. The glass has melted into a droopy frown. Where the Golden Shoe stood there is a sooty claw print and a little orange price sticker: <em>$5 OR BEST OFFER</em>.');
+  npc('Earl, at the shoe counter', '"I didn\'t see anything," says Earl from behind a stack of size 11s. "Okay. I saw one thing. It was very big."');
+  const r1 = await attempt({id:'s1a', detail:'junk', hint:'I sniff the soot...', opts:[
+    {id:'sticker', label:'Study the claw print and the sticker', say:'I get down close to the clue.', tags:['snoop','junk'], diff:1, n3:['Read the Fine Print','Spot Price Tags'],
+      win:'On the back of the sticker, in tiny neat letters: <em>Smolder\'s Garage Sale. Top of Cinder Hill. Everything Must Go.</em> The claw print is neat too. Whoever did this has very good manners.',
+      fail:'You lean in close and sneeze. Soot everywhere. The sticker flutters off and lands on the gumball machine, right beside a flyer: <em>Smolder\'s Garage Sale. Top of Cinder Hill.</em> Lucky. But cleaning up the soot takes all morning.', setFail:['late']},
+    {id:'earl', label:'Ask Earl what he saw', say:'"Earl. Buddy. What was it?"', tags:['talk','people'], diff:1, n3:['Calm Folks Down','Ask Nicely'],
+      win:'"A dragon," Earl whispers. "A polite one. She paid for shoe rental and said excuse me. Then she melted the case." He slides a flyer across the counter: <em>Smolder\'s Garage Sale. Top of Cinder Hill.</em>', set:['earl'],
+      fail:'Earl just squeaks and points. On the gumball machine there\'s a flyer: <em>Smolder\'s Garage Sale. Top of Cinder Hill.</em> By the time he stops squeaking, it\'s almost noon.', setFail:['late']},
+    {id:'track', label:'Follow the scorch marks outside', say:'I follow the soot out the door.', tags:['snoop','dragon'], diff:2, n3:['Track Dragons','Follow the Smoke'],
+      win:'The scorch marks lead out the door and up the road. Big claw prints, with lots of little ones hurrying around them. At the bottom of Cinder Hill, a sign is nailed to a tree: <em>SMOLDER\'S GARAGE SALE. EVERYTHING MUST GO.</em>',
+      fail:'The scorch marks lead you, very confidently, to a neighbor\'s barbecue grill. He offers you a hot dog and points up the road. "Dragon went that way. She\'s having a sale." You have lost the whole morning.', setFail:['late']}],
+    free:{diff:1, win:'It works. And while you\'re at it, you spot a flyer on the gumball machine: <em>Smolder\'s Garage Sale. Top of Cinder Hill.</em>', fail:'It does not go well. On your way out, you spot a flyer on the gumball machine: <em>Smolder\'s Garage Sale. Top of Cinder Hill.</em> You have lost the whole morning.', setFail:['late']}});
+  nar('A dragon has your trophy. And she is having a garage sale.');
+  nar('Before you go, you could grab one thing that might help. You have two hands and one bus pass.');
+  await attempt({id:'s1b', detail:'junk', hint:'I raid the snack bar for...', opts:[
+    {id:'ball', label:'Talk Earl into lending you the House Ball', say:'"Earl. I need Big Linda."', tags:['talk','people'], diff:S.flags.earl ? 1 : 2, n3:['Borrow Things','Sweet-Talk Folks'],
+      win:'Earl hands over Big Linda, the oldest bowling ball in the building. Sixteen pounds, purple, with a crack shaped like a lightning bolt. "Bring her back," he whispers.', set:['ball'],
+      fail:'Earl hugs Big Linda and shakes his head. Instead he gives you a coupon: <em>ONE FREE SHOE RENTAL</em>. "It\'s all I have."', setFail:['coupon']},
+    {id:'lost', label:'Pick the lock on the Lost and Found', say:'That lock has never met me.', tags:['tinker','junk'], diff:2, n3:['Pick Junky Locks','Jiggle Things Open'],
+      win:'Click. Inside: a trench coat, sunglasses, and a fake mustache. A whole disguise, just waiting for you.', set:['disguise'],
+      fail:'The lock wins. Then the whole bin tips over on you. You climb out wearing a sock that is not yours and holding a coach\'s whistle.', setFail:['whistle']},
+    {id:'fog', label:'Sneak the fog machine out of the Cosmic Bowling room', say:'Nobody will miss a fog machine. Probably.', tags:['sneak','junk'], diff:2, n3:['Carry Big Stuff Quietly','Smuggle Gadgets'],
+      win:'Nobody sees you walk out with a fog machine under your arm. Somehow.', set:['fog'],
+      fail:'The manager catches you halfway out the door. She lets you keep it, if you promise to scrub the gum off lane 7. Forever.', setFail:['fog']}],
+    free:{diff:1, win:'It works. You also leave with a coupon for a free shoe rental, which feels important.', set:['coupon'], fail:'It does not work. Earl gives you a coupon for a free shoe rental out of pity.', setFail:['coupon']}});
+  await cont('Catch the bus to Cinder Hill');
+}
+
+async function s2(){
+  scene(2, 'The Gate on Cinder Hill');
+  nar('At the top of Cinder Hill sits the biggest garage you have ever seen. The door is rolled up. Out front, tables stretch across the lawn. Hand-painted signs say <em>EVERYTHING MUST GO</em>, <em>NO REFUNDS</em>, and <em>NO KNIGHTS</em>.');
+  if (S.flags.late) nar('Because you lost the morning, the line now wraps twice around the driveway. Everyone is cranky, especially the staff.');
+  nar('Two kobolds in orange vests guard the gate. Pip is small and cheerful and holds a clipboard. Gristle is large and not cheerful and holds a bigger clipboard.');
+  npc('Pip', '"Admission is one copper coin or one sincere compliment! No knights!"');
+  const mod = S.flags.late ? {n:1, why:'+1 because you\'re late'} : null;
+  if (mod) S.used.add('gmMod');
+  await attempt({id:'s2', detail:'kobolds', mod, hint:'I offer Gristle a...', opts:[
+    {id:'compliment', label:'Pay with a compliment', say:'"Pip, that is the best orange vest I have ever seen."', tags:['talk','kobolds'], diff:1, n3:['Compliment Kobolds','Make Kobold Friends'],
+      win:'Pip glows. He peels a gold sticker off his clipboard and presses it onto your shirt: <em>VIP</em>. "Find me if you need anything!"', set:['pip','vip'],
+      fail:'Pip is busy, so you compliment Gristle instead. "Lovely... teeth." Gristle lets you in. He also slaps a sticker on your back. You can\'t read it, but everyone else can: <em>WATCH THIS ONE</em>.', setFail:['watched']},
+    {id:'haggle', label:'Haggle over the admission', say:'"What if I give you half a compliment?"', tags:['haggle','kobolds'], diff:2, n3:['Haggle with Kobolds','Out-Clipboard a Clipboard'],
+      win:'Ten minutes later, Gristle lets you in for free and throws in a price list, just to make you go away. Under the Golden Shoe it says: <em>PRICELESS (MAKE AN OFFER)</em>.', set:['pricelist'],
+      fail:'Somehow you end up paying three coppers <em>and</em> a compliment. Gristle stamps your hand and slaps a sticker on your back: <em>WATCH THIS ONE</em>.', setFail:['watched']},
+    {id:'wagon', label:'Slip in behind a family with a wagon', say:'I fall in behind a family with a big red wagon.', tags:['sneak','people'], diff:2, n3:['Blend Into Crowds','Walk Like a Tourist'],
+      win:'You stroll in behind a family of seven and their wagon full of lamps. Nobody gives you a second look.',
+      fail:'The wagon stops. You don\'t. Pip looks up from his clipboard. "Sneaking? At a garage sale?" Gristle tags you with a sticker on the back: <em>WATCH THIS ONE</em>.', setFail:['watched']},
+    {id:'disguise', if:!!S.flags.disguise, label:'Walk in wearing your disguise', say:'I fluff my mustache and stroll right in.', tags:['sneak','kobolds'], diff:1, n3:['Fool Kobolds','Wear a Great Mustache'],
+      win:'Gristle salutes. "Afternoon, sir or madam." You are in.',
+      fail:'Your mustache falls off onto Pip\'s clipboard. He hands it back politely, and Gristle slaps a sticker on your back: <em>WATCH THIS ONE</em>.', setFail:['watched']},
+    {id:'whistle', if:!!S.flags.whistle, label:'Blow the coach\'s whistle', say:'FWEEEET.', tags:['talk','kobolds'], diff:1, n3:['Boss Kobolds Around','Whistle Like a Coach'],
+      win:'Both kobolds snap to attention and line up out of habit. You walk right past while they wait for instructions.',
+      fail:'Pip loves the whistle. Gristle does not. You get in, but with a sticker on your back: <em>WATCH THIS ONE</em>.', setFail:['watched']}],
+    free:{diff:2, win:'Pip and Gristle look at each other, shrug, and wave you through.', fail:'It sort of works. You get in, but Gristle slaps a sticker on your back: <em>WATCH THIS ONE</em>.', setFail:['watched']}});
+  if (S.flags.watched){ rule('watched', 'This adventure\'s twist: while that sticker is on your back, the GM rolls one extra die whenever you try to sneak.'); render(); }
+  nar('Past the gate, a crowd of early birds is packed around the garage door like pins in a rack. A woman is holding a lamp over her head. A man is holding a goose. Nobody knows why he has the goose.');
+  await attempt({id:'s2b', detail:'people', hint:'I hop onto a table and...', opts:[
+    {id:'squeeze', label:'Squeeze through the crowd', say:'Excuse me. Pardon me. Coming through.', tags:['move','people'], diff:2, n3:['Squeeze Through Crowds','Elbow Politely'],
+      win:'You slip through gaps nobody else can see and pop out at the front, holding a free tote bag someone handed you on the way.', set:['tote'],
+      fail:'The crowd closes around you like a fist. You come out the other side ten minutes later, holding the goose.'},
+    {id:'chat', label:'Chat your way to the front', say:'"Big sale, huh? Is that goose for sale too?"', tags:['talk','people'], diff:1, n3:['Chat with Regulars','Make Friends in Line'],
+      win:'Two jokes and one goose fact later, the whole crowd waves you ahead. "Go on, hon."', set:['tote'],
+      fail:'You get stuck in a long talk about lamps. A very long talk. You learn a lot about lamps.'},
+    {id:'scan', label:'Look for a gap in the crowd', say:'I stand on my toes and look for an opening.', tags:['snoop','people'], diff:2, n3:['Read a Crowd','Spot the Shortcut'],
+      win:'There is a gap by the recycling bins. You take it and stroll right in.',
+      fail:'You spot a gap. So does the goose. The goose gets there first.'}],
+    free:{diff:2, win:'It works. You make it to the front of the crowd.', fail:'It does not work. You make it inside eventually, a little squished.'}});
+  await cont('Step inside the garage');
+}
+
+async function s3(){
+  scene(3, 'The Sale Floor');
+  nar('Inside, the garage is a maze of tables. Lamps shaped like ducks. A knight\'s helmet full of buttons. Four hundred teaspoons. A canoe, upside down, holding up a shelf of more canoes. Kobolds with price guns zip between shoppers, beeping.');
+  nar('Somewhere in here is the Golden Shoe.');
+  await attempt({id:'s3a', detail:'junk', hint:'I climb the canoe pile to look...', opts:[
+    {id:'rummage', label:'Rummage through the bargain bins', say:'I start digging.', tags:['snoop','junk'], diff:2, n3:['Dig Through Junk','Find Treasure in Trash'],
+      win:'Under a pile of mismatched mittens you find a map of the sale, drawn in crayon. One table is circled three times: <em>NOT FOR SALE</em>. It sits right beside the boss\'s lawn chair.',
+      fail:'A canoe slides off the shelf and lands on you with a hollow BONG. A kobold stares. "Boss! Somebody\'s looking for something!" You find the right table eventually: <em>NOT FOR SALE</em>, beside the boss\'s lawn chair.', setFail:['warned']},
+    {id:'shopper', label:'Ask a regular shopper', say:'"Excuse me. Do you come here often?"', tags:['talk','people'], diff:1, n3:['Chat with Regulars','Make Friends in Line'],
+      win:'Mrs. Okafor from the library comes every Saturday. She points you to the <em>NOT FOR SALE</em> table and leans close. "Funny thing. She asks every shopper if they bowl. Every single one."', set:['secret'],
+      fail:'"THE GOLDEN SHOE?" Mrs. Okafor shouts, because she is a little hard of hearing. "IT\'S ON THE NOT FOR SALE TABLE, DEAR." Every kobold in the garage turns to look at you.', setFail:['warned']},
+    {id:'gossip', label:'Listen in on the kobolds\' gossip', say:'I slip under a table near the kobold break area.', tags:['sneak','kobolds'], diff:2, n3:['Eavesdrop on Kobolds','Hide Under Tables'],
+      win:'Two kobolds share a sandwich and some gossip. "The boss only took that shoe because no bowling alley has a lane big enough for a dragon." "She just wants to bowl." "Poor boss." Then they point at the <em>NOT FOR SALE</em> table, with no idea they are helping you.', set:['secret'],
+      fail:'The tablecloth lifts. A kobold peers in. "Hello." "Hello." She runs off to tell the boss you are coming, but not before telling you where to go: the <em>NOT FOR SALE</em> table.', setFail:['warned']},
+    {id:'pip', if:!!S.flags.pip, label:'Ask Pip for a tour', say:'"Pip! Show me around?"', tags:['talk','kobolds'], diff:1, n3:['Make Kobold Friends','Get the Grand Tour'],
+      win:'Pip gives you the full tour, with fun facts. At the end he whispers, "The boss took it because she wants to bowl. No alley will let her. The lanes are too small. Don\'t tell her I told you."', set:['secret'],
+      fail:'Pip is too busy for a tour, but he points the way: the <em>NOT FOR SALE</em> table. "I\'ll tell the boss you\'re coming! She loves visitors!"', setFail:['warned']}],
+    free:{diff:2, win:'It works. You spot the Golden Shoe on a velvet cushion, on a table marked <em>NOT FOR SALE</em>, beside an enormous lawn chair.', fail:'It goes badly, and loudly. Kobolds stare. But you spot the shoe anyway: <em>NOT FOR SALE</em>, beside an enormous lawn chair.', setFail:['warned']}});
+  nar('You can see it from here. The Golden Shoe, on a velvet cushion, beside a lawn chair the size of a bus. Before you walk over, there\'s time for one more thing.');
+  await attempt({id:'s3b', detail:'junk', hint:'I buy a hat to look less suspicious...', opts:[
+    {id:'shiny', label:'Find something shiny to trade', say:'Dragons like shiny things. I go shopping.', tags:['haggle','junk'], diff:1, n3:['Spot a Bargain','Haggle Over Junk'],
+      win:'A disco ball, a little dented, for one dollar. It throws sparkles across the whole garage.', set:['shiny'],
+      fail:'You panic and buy a lamp shaped like a duck for eleven dollars. It is not shiny. It quacks when you turn it on.', setFail:['duck']},
+    {id:'route', label:'Scope out an escape route', say:'I want to know every way out of here.', tags:['snoop','junk'], diff:2, n3:['Find the Exit','Map Messy Rooms'],
+      win:'A side door behind the canoes. Shopping carts by the driveway. A long hill straight down to the bus stop. You know exactly how to leave in a hurry.', set:['route'],
+      fail:'Every path you try ends in more canoes. How many canoes does one dragon need?'},
+    {id:'warm', label:'Warm up your bowling arm', say:'I grab a melon off the snack table and practice my swing.', tags:['bowl','junk'], diff:1, n3:['Bowl in Tight Spaces','Bowl with Fruit'],
+      win:'The melon rolls down the aisle, dead straight, and taps a stack of teaspoons. Strike. Your arm feels loose and ready.', set:['warm'],
+      fail:'The melon gets away from you. It rolls under three tables and into a kobold, who now holds a grudge and a melon.', setFail:['warned']},
+    {id:'peel', if:!!S.flags.watched, label:'Get that sticker off your back', say:'I back up against a shelf and wiggle.', tags:['move','junk'], diff:1, n3:['Wiggle Free','Reach My Own Back'],
+      win:'You scrape it off on the corner of a bookcase. Nobody is watching you any more.', set:['stickerOff'],
+      fail:'You wiggle against a bookcase. The sticker stays. Now a second sticker is stuck to you too: <em>50% OFF</em>.'}],
+    free:{diff:1, win:'It goes well. You walk over feeling ready for anything.', fail:'It does not go well, and a kobold noticed.', setFail:['warned']}});
+  await cont('Walk up to the lawn chair');
+}
+
+async function s4(){
+  scene(4, 'Madame Smolder');
+  nar('Madame Smolder lounges in her lawn chair, counting coins with one claw. She wears reading glasses and a sun hat with holes cut out for her horns. Her scales are the color of a toasted marshmallow.');
+  if (S.flags.warned) nar('She is expecting you. The kobolds told her everything.');
+  npc('Madame Smolder', '"Welcome, small shopper. Everything must go." She pats the velvet cushion beside her. "Except this. This stays."');
+  nar('The Golden Shoe gleams on its cushion. You are close enough to touch it. So is she.');
+  const mod = S.flags.warned ? {n:1, why:'+1 because she was warned'} : null;
+  const story = S.flags.secret ? 'match' : 'deal';
+  const r = await attempt({id:'s4', detail:'dragon', mod, hint:'I ask her about her hat...', opts:[
+    {id:'offer', label:'Make her an offer', say:'"Everything has a price. What\'s yours?"', tags:['haggle','dragon'], diff:2, n3:['Haggle with Dragons','Talk Money with Monsters'], path:'deal',
+      win:'Smolder takes off her glasses. "Ooh. A haggler. Fine. Show me something better than a golden shoe, and we\'ll talk."',
+      fail:'She laughs, and a smoke ring drifts over your head. "Offer declined. You haven\'t even made one yet. But I like you. Bring me something good."', setFail:['dealHard']},
+    {id:'match', if:!!S.flags.secret, label:'Challenge her to a bowling match', say:'"I hear you bowl. Three frames. Winner keeps the shoe."', tags:['bowl','dragon'], diff:2, n3:['Bowl Against Dragons','Talk Trash, Bowl Smash'], path:'match',
+      win:'She sits up so fast her hat flies off. "Nobody has ever asked me to bowl. Nobody." She snaps her claws. "Kobolds! Set up a lane!"',
+      fail:'"Accepted," she says. "But we play on my lane, with my pins." Her lane is the driveway, which slopes. Her pins are ten lava lamps.', setFail:['matchHard']},
+    {id:'grab', label:'Distract her and grab the shoe', say:'"Is that a knight?" I point. She looks. I reach.', tags:['sneak','dragon'], diff:3, n3:['Sneak Past Dragons','Grab and Go'], path:'heist',
+      win:'She turns. You grab. By the time she turns back, the cushion is empty and you are three tables away, walking calmly.', set:['shoe'],
+      fail:'Your hand closes on the Golden Shoe at the exact moment she turns back. You both look at the shoe. You both look at each other. You run.', setFail:['shoe','chased']},
+    {id:'story', label:'Tell her what the shoe means to your team', say:'"That shoe is the only thing my team has ever won."', tags:['talk','dragon'], diff:2, n3:['Talk to Dragons','Tell a Sad Story'], path:story,
+      win: S.flags.secret ? 'Smolder listens, and her eyes go soft. "I have never won anything," she says. "Nobody lets me play. The lanes are too small." She sniffs. "Tell you what. Beat me at bowling, and it\'s yours."' : 'Smolder dabs her eye with a napkin. "That\'s beautiful. I still want something for it. Bring me a good trade."',
+      fail:'"Everyone has a sad story at a garage sale," she says. "Bring me something worth trading."', setFail:['dealHard']}],
+    free:{diff:2, win:'Smolder raises one eyebrow ridge. It worked better than either of you expected.', fail:'Smolder blows a small, unimpressed smoke ring.'}});
+  if (r.free){
+    const f = r.opt.tags[0];
+    S.path = ['sneak','move','tinker'].includes(f) ? 'heist' : (f === 'bowl' ? 'match' : 'deal');
+    if (S.path === 'heist'){ S.flags.shoe = true; if (!r.win) S.flags.chased = true; nar(r.win ? 'In the confusion, the Golden Shoe ends up in your hands. Time to go.' : 'You grab the Golden Shoe anyway. She sees. You run.'); }
+    else if (S.path === 'match') nar(r.win ? '"You bowl?" she says. "Prove it. Kobolds! Set up a lane!"' : '"You think you can bowl?" she says. "Fine. My lane, my pins." Her pins are ten lava lamps.');
+    else nar('"Let\'s talk business," she says. "Show me what you\'ve got."');
+    if (S.path === 'match' && !r.win) S.flags.matchHard = true;
+    if (S.path === 'deal' && !r.win) S.flags.dealHard = true;
+  } else S.path = r.opt.path;
+  if (r.win) S.pts++;
+  render();
+  await cont({deal:'Make the trade', match:'Step up to the lane', heist:'Make a break for it'}[S.path]);
+}
+
+async function s5(){
+  if (S.path === 'deal') return s5deal();
+  if (S.path === 'match') return s5match();
+  return s5heist();
+}
+async function s5deal(){
+  scene(5, 'The Big Trade');
+  nar('Smolder clears a space on the table with her tail. Teaspoons go everywhere.');
+  npc('Madame Smolder', '"Well? What have you got?"');
+  const mod = S.flags.dealHard ? {n:1, why:'+1 because she is not impressed yet'} : null;
+  const r1 = await attempt({id:'s5a', detail:'dragon', mod, hint:'I offer her my lucky...', opts:[
+    {id:'shiny', if:!!S.flags.shiny, label:'Offer the disco ball', tags:['haggle','dragon'], diff:1, n3:['Haggle with Dragons','Trade Shiny Things'],
+      win:'She holds it up to the light. Sparkles race across her scales. "Oh. Oh, that is lovely."', fail:'"It\'s dented," she says. But she keeps looking at it.'},
+    {id:'duck', if:!!S.flags.duck, label:'Offer the duck lamp', tags:['haggle','dragon'], diff:2, n3:['Haggle with Dragons','Sell Anything'],
+      win:'You switch it on. It quacks. Smolder gasps. "I have been looking for one of these for three hundred years."', fail:'It quacks. She frowns. "I already have six."'},
+    {id:'coupon', if:!!S.flags.coupon, label:'Offer the free shoe rental coupon', tags:['haggle','dragon'], diff:1, n3:['Haggle with Dragons','Know a Good Coupon'],
+      win:'Her eyes go wide. "Free shoe rental? Do you know what they charge me? I wear a size 40."', fail:'"It expires Tuesday," she says, reading the fine print.'},
+    {id:'shoes', label:'Offer your own bowling shoes, still warm', say:'I take off my shoes and hold them out.', tags:['haggle','dragon'], diff:3, n3:['Haggle with Dragons','Sell the Shoes off My Feet'],
+      win:'She sniffs them, which is upsetting for everyone. "Vintage," she decides. "I am interested."', fail:'She holds them at claw\'s length. "No. Absolutely not."'},
+    {id:'work', label:'Offer to work the sale for a day', say:'"I\'ll run a register. All day. Free."', tags:['talk','dragon'], diff:2, n3:['Talk to Dragons','Pitch In'],
+      win:'"Free help? On a Saturday?" She hands you a price gun. "Maybe."', fail:'"I have forty kobolds," she says. "They work for snacks."'}],
+    free:{diff:2, win:'Smolder taps her chin. "Interesting. Go on."', fail:'"No," says Smolder. "Next."'}});
+  if (r1.win) S.pts++;
+  npc('Madame Smolder', '"Hmm. I\'ll think about it. But that shoe is solid gold, you know."');
+  const r2 = await attempt({id:'s5b', detail:'dragon', hint:'I point out that...', opts:[
+    {id:'paint', label:'Point out that the gold is just paint', say:'I scratch the heel with my fingernail.', tags:['snoop','junk'], diff:2, n3:['Spot Fakes','Read the Fine Print'],
+      win:'Under the gold is an old brown bowling shoe, size 9. Smolder\'s face falls. "Paint? I stole <em>paint</em>?"', fail:'The paint holds. "See?" she says. "Solid gold."'},
+    {id:'flatter', label:'Flatter her taste in trophies', say:'"You have a real eye for treasure."', tags:['talk','dragon'], diff:2, n3:['Talk to Dragons','Flatter Royalty'],
+      win:'She preens. "I do, don\'t I." She is softening.', fail:'"I know I do," she says, unmoved.'},
+    {id:'pip', if:!!S.flags.pip, label:'Ask Pip to put in a good word', tags:['talk','kobolds'], diff:1, n3:['Make Kobold Friends','Get Backup'],
+      win:'Pip marches up with his clipboard. "Boss, this one is VIP. Very Important Person. It says so right on the sticker." Smolder is moved.', fail:'Pip tries, but gets so nervous he only reads his clipboard out loud.'},
+    {id:'list', if:!!S.flags.pricelist, label:'Wave the price list at her', say:'"It says MAKE AN OFFER. In your handwriting."', tags:['haggle','dragon'], diff:1, n3:['Haggle with Dragons','Know the Rules'],
+      win:'She sighs. "I did write that."', fail:'"That\'s last week\'s price list," she says.'}],
+    free:{diff:2, win:'Smolder chuckles. "All right. You have a point."', fail:'Smolder yawns, showing a lot of teeth.'}});
+  if (r2.win) S.pts++;
+  await cont('Close the deal');
+}
+async function s5match(){
+  scene(5, 'Best of Three');
+  nar('The kobolds clear the driveway and set up ten lava lamps for pins. A crowd of shoppers gathers with snacks. Smolder rolls first. She uses a small boulder.');
+  rule('match', 'In this match, your dice are your bowl and the GM\'s dice are Smolder\'s. Win a frame by beating her total.');
+  const mod = () => {
+    let n = 0; const w = [];
+    if (S.flags.matchHard){ n++; w.push('+1 on her sloped lane'); }
+    if (S.flags.warm){ n--; w.push('-1 for your warmed-up arm'); }
+    return n ? {n, why:w.join(', ')} : null;
+  };
+  const opts = () => [
+    {id:'straight', label:'Roll it straight down the middle', say:'Nice and easy. Right down the middle.', tags:['bowl','dragon'], diff:2, n3:['Bowl Against Dragons','Bowl Under Pressure'],
+      win:'Ten lava lamps go down in a glorious, gooey clatter. Strike!', fail:'Two lamps wobble and stay up. Smolder\'s boulder takes out all ten.'},
+    {id:'hook', label:'Throw a wild hook around the snack table', say:'Watch this curve.', tags:['bowl','junk'], diff:2, n3:['Bowl Around Junk','Throw Curve Balls'],
+      win:'The ball swings out wide, curls past the pretzels, and hits the pocket. The crowd goes wild.', fail:'The ball curls past the pretzels and keeps curling. It ends up in the canoes.'},
+    {id:'linda', if:!!S.flags.ball, label:'Bowl with Big Linda', say:'"Big Linda. It\'s your time."', tags:['bowl','junk'], diff:1, n3:['Bowl with Big Linda','Trust the House Ball'],
+      win:'Big Linda thunders down the driveway like she has waited forty years for this. Every lamp falls.', fail:'Big Linda veers left, as she always has, and as Earl warned you.'},
+    {id:'trash', label:'Trash-talk her backswing', say:'"Nice form. For a lizard."', tags:['talk','dragon'], diff:2, n3:['Talk to Dragons','Talk Trash'],
+      win:'She laughs so hard she gutters her boulder. You knock down eight lamps without trying.', fail:'"Sticks and stones," she says, and bowls a strike with a stone.'}];
+  nar('<strong>Frame one.</strong>');
+  const r1 = await attempt({id:'s5a', detail:'dragon', mod:mod(), hint:'I bowl backwards between my legs...', opts:opts(),
+    free:{diff:2, win:'Somehow, it works. Nine lamps fall. The crowd cheers.', fail:'It does not work. The crowd says "ooh" in the sad way.'}});
+  if (r1.win) S.pts++;
+  nar('<strong>Frame two.</strong> Smolder cracks her knuckles. It sounds like thunder.');
+  const r2 = await attempt({id:'s5b', detail:'dragon', mod:mod(), hint:'I spin three times and...', opts:opts(),
+    free:{diff:2, win:'Somehow, it works again. Smolder narrows her eyes.', fail:'The lamps stay standing. Smolder hums to herself.'}});
+  if (r2.win) S.pts++;
+  nar(S.pts >= 2 ? 'You are ahead. Smolder is grinning anyway. She is having the time of her life.' : (S.pts === 1 ? 'You are close. One frame left.' : 'You are behind. But in bowling, one big frame can change everything.'));
+  await cont('Step up for the last frame');
+}
+async function s5heist(){
+  scene(5, 'The Grab');
+  nar(S.flags.chased ? 'Smolder rises out of her lawn chair. She is much, much taller standing up. "SMALL SHOPPER."' : 'You have the shoe. Now you need to get it out of a garage full of kobolds before anyone notices the empty cushion.');
+  const r1 = await attempt({id:'s5a', detail:'junk', hint:'I throw teaspoons everywhere...', opts:[
+    {id:'fog', if:!!S.flags.fog, label:'Switch on the fog machine', say:'Time for Cosmic Bowling.', tags:['tinker','junk'], diff:1, n3:['Rig Gadgets','Make a Scene'],
+      win:'Purple fog rolls through the garage. Kobolds bump into canoes. Somewhere, a duck lamp quacks.', fail:'The fog machine coughs once and dies. Then it starts working all at once, mostly on you.'},
+    {id:'canoes', label:'Knock over the canoe tower', say:'I give the bottom canoe a good kick.', tags:['move','junk'], diff:2, n3:['Knock Stuff Over','Surf on Canoes'],
+      win:'Forty canoes slide across the floor like a wave. You ride one toward the door.', fail:'The canoes fall. So do you.'},
+    {id:'samples', label:'Yell "Free samples!"', say:'"FREE SAMPLES BY THE SNACK TABLE!"', tags:['talk','people'], diff:2, n3:['Work a Crowd','Shout Convincingly'],
+      win:'Every shopper in the garage stampedes for the snack table, right between you and the dragon.', fail:'Nobody believes you. Two people ask what kind of samples.'},
+    {id:'whistle', if:!!S.flags.whistle, label:'Blow the whistle and yell "Line up!"', say:'FWEEEET. "LINE UP!"', tags:['talk','kobolds'], diff:1, n3:['Boss Kobolds Around','Whistle Like a Coach'],
+      win:'Every kobold in the garage lines up by height, right across the aisle behind you.', fail:'The kobolds line up. In front of you.'},
+    {id:'wardrobe', label:'Hide in a wardrobe that is for sale', say:'I step into the wardrobe and pull the door shut.', tags:['sneak','junk'], diff:2, n3:['Hide in Furniture','Sneak Through Junk'],
+      win:'Smolder stomps right past. You step out the back of the wardrobe, which is missing.', fail:'The wardrobe is already full of kobolds on their break.'}],
+    free:{diff:2, win:'It works. Nobody is between you and the door.', fail:'It does not work. Now everyone is between you and the door.'}});
+  if (r1.win) S.pts++; else S.flags.chased = true;
+  nar('The side door bangs open. Daylight. A long hill runs all the way down to the bus stop.');
+  const mod = () => { let n = 0; const w = []; if (S.flags.route){ n--; w.push('-1 because you know the way out'); } if (S.flags.chased){ n++; w.push('+1 because she is right behind you'); } return n || w.length ? {n, why:w.join(', ')} : null; };
+  const r2 = await attempt({id:'s5b', detail:'dragon', mod:mod(), hint:'I roll down the hill like a log...', opts:[
+    {id:'sprint', label:'Sprint down Cinder Hill', say:'I run. In rental shoes. Downhill.', tags:['move','dragon'], diff:3, n3:['Outrun Dragons','Run in Rental Shoes'],
+      win:'Your rental shoes have never moved this fast. Neither have you.', fail:'Rental shoes are not made for hills. You slide most of the way on your back.'},
+    {id:'cart', label:'Ride a shopping cart down the hill', say:'I jump in a shopping cart and push off.', tags:['move','junk'], diff:2, n3:['Steer Shopping Carts','Ride Junk Downhill'],
+      win:'Wheee. The cart rattles down the hill faster than a dragon can waddle.', fail:'The cart has one wobbly wheel. You go down the hill mostly sideways.'},
+    {id:'hide', label:'Hide under a canoe until she passes', say:'I flip a canoe over myself and hold very still.', tags:['sneak','junk'], diff:2, n3:['Hide Under Canoes','Sneak Through Junk'],
+      win:'Big footsteps stomp past. Then they stomp away. You let out a breath.', fail:'A claw taps the canoe. "Knock, knock."'},
+    {id:'pipgate', if:!!S.flags.pip, label:'Ask Pip to open the back gate', say:'"Pip! The gate!"', tags:['talk','kobolds'], diff:1, n3:['Make Kobold Friends','Call in Favors'],
+      win:'Pip swings the back gate wide. "VIP exit!" he says, and closes it behind you.', fail:'Pip opens the gate. Then, trying to help, he opens every gate, including the one Smolder is standing behind.'}],
+    free:{diff:2, win:'It works. You make it to the bottom of the hill.', fail:'It goes wrong. You make it to the bottom of the hill, but not quickly.'}});
+  if (r2.win) S.pts++;
+  await cont('Run for the bus stop');
+}
+
+async function s6(){
+  scene(6, 'Closing Time');
+  let r;
+  if (S.path === 'deal'){
+    nar(S.pts >= 2 ? 'Smolder is smiling. You are winning her over.' : 'Smolder is not sold yet. This is your last chance.');
+    npc('Madame Smolder', '"Before we shake on anything. Why do you want it so badly? Really?"');
+    r = await attempt({id:'s6', detail:'dragon', mod:S.pts === 0 ? {n:1, why:'+1 because she is not sold'} : null, hint:'I tell her about the time...', opts:[
+      {id:'truth', label:'Tell her the truth about the Gutter Buddies', say:'"We lose every week. That shoe was the one time we didn\'t."', tags:['talk','dragon'], diff:2, n3:['Talk to Dragons','Speak from the Heart'],
+        win:'Smolder is quiet for a long time. Then she pushes the cushion toward you.', fail:'"Everybody loses," she says. "Welcome to the club."'},
+      {id:'invite', if:!!S.flags.secret, label:'Invite her to bowl with your team', say:'"Come bowl with us. We need a fifth. We need a lot of things."', tags:['talk','dragon'], diff:1, n3:['Talk to Dragons','Make Friends with Monsters'], team:true,
+        win:'Smolder\'s tail thumps the floor so hard the teaspoons jump. "Really? Me?"', fail:'"You\'re just saying that," she says. But her tail twitches.'},
+      {id:'last', label:'Haggle one last time', say:'"Final offer. Take it or leave it."', tags:['haggle','dragon'], diff:3, n3:['Haggle with Dragons','Close the Deal'],
+        win:'"Sold," she says, and bangs a teaspoon on the table like a gavel.', fail:'"Leave it," she says.'}],
+      free:{diff:2, win:'It lands. Smolder pushes the cushion toward you.', fail:'Smolder shakes her head.'}});
+  } else if (S.path === 'match'){
+    nar('<strong>The last frame.</strong> The whole sale has stopped to watch. Kobolds hold up score cards. Mrs. Okafor is chanting your name.');
+    r = await attempt({id:'s6', detail:'dragon', mod:(() => { let n = 0, w = []; if (S.flags.matchHard){ n++; w.push('+1 on her sloped lane'); } if (S.flags.warm){ n--; w.push('-1 for your warmed-up arm'); } if (S.pts === 0){ n++; w.push('+1 because you are behind'); } return n || w.length ? {n, why:w.join(', ')} : null; })(), hint:'I close my eyes and...', opts:[
+      {id:'straight', label:'Roll it straight down the middle', say:'Nice and easy. Right down the middle.', tags:['bowl','dragon'], diff:3, n3:['Bowl Against Dragons','Bowl Under Pressure'],
+        win:'Strike. Lava lamps everywhere. The crowd lifts you up on their shoulders.', fail:'Nine down. One lamp wobbles, wobbles, and stays standing.'},
+      {id:'linda', if:!!S.flags.ball, label:'One last roll with Big Linda', say:'"For Earl."', tags:['bowl','junk'], diff:2, n3:['Bowl with Big Linda','Trust the House Ball'],
+        win:'Big Linda finally goes straight. Every lamp falls. Somewhere across town, Earl feels a disturbance.', fail:'Big Linda veers left. Of course she does.'},
+      {id:'hook', label:'Throw the wildest hook of your life', say:'Everything I\'ve got.', tags:['bowl','junk'], diff:3, n3:['Bowl Around Junk','Throw Curve Balls'],
+        win:'The ball goes around the snack table, under a canoe, and into the pins. Nobody can believe it. You can\'t believe it.', fail:'The ball goes around the snack table, under a canoe, and out the door.'}],
+      free:{diff:3, win:'Against all reason, it works. Strike.', fail:'The lamps stay standing.'}});
+  } else {
+    nar('At the bottom of the hill, a shadow falls over the bus stop. Madame Smolder lands in front of you with a thump, hat crooked.');
+    npc('Madame Smolder', '"Small shopper. That is MINE. I bought it. Well. I took it. Same thing."');
+    r = await attempt({id:'s6', detail:'dragon', mod:S.pts === 0 ? {n:1, why:'+1 because she caught you'} : null, hint:'I hold the shoe up and say...', opts:[
+      {id:'talk', label:'Talk your way past her', say:'"You took it first. I\'m just taking it back."', tags:['talk','dragon'], diff:3, n3:['Talk to Dragons','Argue with Dragons'],
+        win:'She opens her mouth. She closes it. "Fair point," she mutters, and steps aside.', fail:'"I am a dragon," she says. "Points do not have to be fair."'},
+      {id:'dodge', label:'Dodge between her legs and onto the bus', say:'The bus doors open. I go for it.', tags:['move','dragon'], diff:3, n3:['Outrun Dragons','Dodge Dragons'],
+        win:'You duck under her tail, skid between her claws, and dive through the bus doors as they close.', fail:'You duck under her tail, right into her other claw.'},
+      {id:'share', if:!!S.flags.secret, label:'Invite her to bowl with your team', say:'"Wait. You want to bowl, right? Bowl with us."', tags:['talk','dragon'], diff:2, n3:['Talk to Dragons','Make Friends with Monsters'], team:true,
+        win:'Smolder freezes. Very slowly, she lowers her claw. "With you? On a real team?"', fail:'"A trick," she says. But she doesn\'t move.'},
+      {id:'bowl', if:!!S.flags.ball, label:'Bowl Big Linda between her feet', say:'I drop the shoe in my pocket and wind up.', tags:['bowl','dragon'], diff:2, n3:['Bowl Against Dragons','Bowl at Toes'],
+        win:'Big Linda rolls between her toes. Smolder hops on one foot, yelping. You are on the bus.', fail:'Big Linda veers left and stops against the curb.'}],
+      free:{diff:3, win:'Against all odds, it works. You are on the bus.', fail:'It does not work. Smolder holds out her claw.'}});
+  }
+  S.flags.finalWin = r.win;
+  S.flags.team = r.win && (S.path === 'match' || !!r.opt.team);
+  await cont('See how it ends');
+}
+
+async function ending(){
+  clearSave();
+  $('#sceneName').textContent = 'The end';
+  let title, text;
+  if (S.flags.finalWin && S.flags.team){
+    title = 'New Teammate';
+    text = `The Golden Shoe goes back in the trophy case at Lucky Strike Lanes. And on Saturday, the Gutter Buddies show up with a fifth bowler. Earl knocks out a wall to make lane 12 dragon-sized. Smolder still loses most weeks. She has never been happier.`;
+  } else if (S.flags.finalWin){
+    title = 'Golden Shoe, Home Again';
+    text = {deal:'You shake on it. Smolder keeps your offer and you keep the shoe. Back at Lucky Strike Lanes, Earl cries a little. The Gutter Buddies lose that afternoon, as usual, but they lose with a trophy.',
+      heist:'The bus pulls away with you and the Golden Shoe on board. Smolder waves her sun hat after you, more impressed than mad. You are banned from her garage sales for life. It is worth it.',
+      match:'You win. The Golden Shoe is yours. Smolder shakes your hand and asks, very quietly, when the next match is.'}[S.path];
+  } else if (S.pts >= 2){
+    title = 'Shared Custody';
+    text = 'In the end, nobody wins and everybody shakes on it. The Golden Shoe will spend weekdays at Lucky Strike Lanes and weekends on Smolder\'s mantel. It is a strange deal. Everyone seems happy with it.';
+  } else {
+    title = 'Store Credit';
+    text = 'In the end, Smolder keeps the Golden Shoe, gently but firmly. She gives you store credit and a lamp shaped like a duck. "Come back next Saturday," she says. "Everything must go. Eventually." You will be back. You have new skills now.';
+  }
+  const ALL = [['win','A roll that beat the GM'],['fail','A fail, and the XP it pays'],['tie','A tie going to the GM'],['allSix','Rolling all sixes'],['spend','Spending XP on sixes'],['useSkill','Rolling a skill you earned'],['lvl3','Earning a level 3 skill'],['chooseLower','Choosing a less specific skill'],['gmMod','The GM rolling more or fewer dice']];
+  const learned = S.skills.length - 1;
+  add('endcard', `
+    <h3>${esc(title)}</h3>
+    <p>${text}</p>
+    <p>${esc(S.name)} started the day with <strong>Do Anything 1</strong> and ended it with ${learned ? `${plural(learned, 'new skill')}` : 'no new skills, which is its own kind of legend'}.</p>
+    <div class="tree" aria-label="Your final skill tree">${tree(null)}</div>
+    <div class="stats"><span class="stk">${plural(S.stats.rolls, 'roll')}</span><span class="stk bad">${plural(S.stats.fails, 'fail')}</span><span class="stk xp">${S.stats.spent} XP spent</span><span class="stk ok">${S.stats.sixes} all-six ${S.stats.sixes === 1 ? 'roll' : 'rolls'}</span></div>
+    <div class="cta">
+      <strong>Roll for Shoes is free.</strong>
+      <span>The whole game fits on one page. Grab some friends and six-sided dice, and start everyone at Do Anything 1.</span>
+      <a class="ctabtn" href="https://rollforshoes.com/" target="_blank" rel="noopener">Read the full free rules</a>
+    </div>
+    <ul class="learned">${ALL.map(([k, t]) => `<li class="${S.used.has(k) ? '' : 'no'}">${t}</li>`).join('')}</ul>
+    <p class="fine">Based on Roll for Shoes by Ben Wray (rollforshoes.com), dedicated to the public domain under CC0 1.0. Rules restated in our own words. Not an official Roll for Shoes product. The adventure is &copy; 2026 RPG Demo Library. <a href="../../">More free demos</a></p>`);
+  const c = await choose([{id:'again', label:'Play again', sub:'A fresh bowler at Do Anything 1.', cls:'primary', say:false}]);
+  if (c.id === 'again') location.reload();
+}
+
+if (matchMedia('(max-width: 880px)').matches) $('#sheet').open = false;
+start();
+})();
+</script>
+</body>
+</html>
