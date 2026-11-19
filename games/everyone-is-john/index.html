@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>John's Big Tuesday: Everyone Is John Demo</title>
+<meta name="description" content="Be one of three Voices fighting to steer John through one very big Tuesday. A free solo demo of Everyone Is John, in your browser. Real bids, real dice.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<script src="../../store.js"></script>
+<style>
+/* Look: the inside of John's head as a sitcom set. Bubblegum brain wallpaper with doodles, a cream TV screen for the story, title cards in a retro script, and one color per Voice: teal for you, tomato for Gloria, violet for Pip, mustard for John. */
+:root{
+  --brain:#F5C3CF; --brain-2:#EDA9BB; --brain-3:#F9D8E0; --paper:#FFFDF7; --paper-2:#FFF2D9; --ink:#2B2233; --muted:#665B6E;
+  --me:#11706F; --me-l:#2BA7A3; --me-bg:#DDF3F1;
+  --gl:#B8400E; --gl-l:#F07A3E; --gl-bg:#FDE6DA;
+  --pip:#6A48A6; --pip-l:#9C7FD6; --pip-bg:#ECE5FA;
+  --john:#F2B630; --john-d:#8A5F00;
+  --ok:#24784A; --bad:#AE2C24;
+  --f-title:"Shrikhand", "Cooper Black", Georgia, serif; --f-ui:"Fredoka", "Trebuchet MS", sans-serif; --f-body:"Atkinson Hyperlegible", Verdana, sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{overflow-x:hidden}
+body{margin:0;background-color:var(--brain);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;overflow-x:clip;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' fill='none' stroke='%23EDA9BB' stroke-width='5' stroke-linecap='round'%3E%3Cpath d='M18 40c10-16 26-16 34 0s24 16 32 0'/%3E%3Cpath d='M140 30c-12 8-12 26 2 30s14 22 0 28'/%3E%3Cpath d='M40 150c14-10 30 6 22 18s10 26 24 14'/%3E%3Cpath d='M150 150c8-14 28-14 34 0'/%3E%3Ccircle cx='110' cy='110' r='6'/%3E%3Cpath d='M190 90l8 8M198 90l-8 8'/%3E%3Cpath d='M20 100l6 10 8-14'/%3E%3C/svg%3E");background-attachment:fixed}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--me);outline-offset:2px}
+.stripe{height:8px;background:linear-gradient(90deg,var(--me-l) 0 25%,var(--gl-l) 25% 50%,var(--pip-l) 50% 75%,var(--john) 75%)}
+.proto{background:var(--ink);color:#E9DDEA;font-family:var(--f-ui);font-size:14px;padding-block:7px;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));display:flex;gap:6px 16px;flex-wrap:wrap;justify-content:space-between}
+.proto b{color:#fff}
+.wrap{max-width:1160px;margin:0 auto;padding-block:22px 60px;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+.masthead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px 24px;flex-wrap:wrap;margin-bottom:18px}
+.eyebrow{font-family:var(--f-ui);font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--gl);margin:0 0 4px}
+h1{font-family:var(--f-title);font-weight:400;font-size:clamp(40px,8vw,72px);line-height:.95;margin:0;color:var(--paper);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:4px 4px 0 var(--ink);transform:rotate(-2deg);transform-origin:left bottom}
+.tag{color:var(--ink);margin:14px 0 0;max-width:56ch;font-size:16.5px}
+.mast-side{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.chip{font-family:var(--f-ui);font-weight:600;font-size:14px;border:2px solid var(--ink);background:var(--paper);padding:5px 12px;border-radius:999px;white-space:nowrap}
+.cta{display:inline-block;text-decoration:none;background:var(--john);color:var(--ink);font-family:var(--f-ui);font-weight:700;font-size:17px;padding:10px 18px;border-radius:12px;border:2.5px solid var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.cta:hover{background:#FFC84A}
+.cta:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+
+.table{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:22px;align-items:start}
+.story{background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:22px;min-width:0;box-shadow:7px 7px 0 var(--ink);overflow:clip}
+.story-head{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:10px 18px;border-bottom:3px solid var(--ink);background:var(--paper-2)}
+.story-head .scene{font-family:var(--f-ui);font-weight:700;font-size:18px;line-height:1.1}
+.toggles{display:flex;gap:4px 14px;flex-wrap:wrap}
+.toggle{font-family:var(--f-ui);font-size:14px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--muted)}
+.toggle input{accent-color:var(--me)}
+#log{padding:18px 20px 10px;display:flex;flex-direction:column;gap:12px}
+.line{max-width:66ch}
+.who{font-family:var(--f-ui);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:1px}
+.npc{border-left:4px solid var(--john);padding-left:12px;font-style:italic}
+.npc .who{font-style:normal;color:var(--john-d)}
+.you{align-self:flex-end;background:var(--me);color:#fff;padding:7px 13px;border-radius:16px 16px 3px 16px;max-width:min(54ch,90%);font-weight:700}
+.voice{max-width:min(56ch,92%);padding:7px 13px;border-radius:16px 16px 16px 3px;border:2px solid currentColor;font-weight:700}
+.voice .who{color:inherit}
+.voice.gloria{color:var(--gl);background:var(--gl-bg)}
+.voice.pip{color:var(--pip);background:var(--pip-bg)}
+.voice.me{color:var(--me);background:var(--me-bg)}
+.rule{font-family:var(--f-ui);font-size:15px;line-height:1.45;background:#FFF0B8;border:2px dashed var(--john-d);padding:7px 11px;max-width:66ch;border-radius:10px}
+.rule::before{content:"RULE  ";font-weight:700;letter-spacing:.08em;color:var(--john-d)}
+body.norules .rule{display:none}
+.scenebreak{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin-top:10px;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:16px;max-width:66ch}
+.scenebreak small{font-family:var(--f-ui);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--john);display:flex;gap:8px;align-items:center}
+.scenebreak small i{font-style:normal;background:var(--john);color:var(--ink);border-radius:6px;padding:0 7px;letter-spacing:0}
+.scenebreak span{font-family:var(--f-title);font-size:clamp(26px,5vw,34px);line-height:1.05;color:#fff}
+.score-ev{font-family:var(--f-ui);font-weight:600;max-width:66ch;border-radius:12px;padding:8px 12px;border:2px solid var(--ink)}
+.score-ev.me{background:var(--me-bg)}
+.score-ev.gloria{background:var(--gl-bg)}
+.score-ev.pip{background:var(--pip-bg)}
+.tbl{max-width:66ch;font-family:var(--f-ui);font-size:15px;background:#fff;border:2px dashed var(--muted);border-radius:12px;padding:6px 10px}
+.tbl b{color:var(--gl)}
+.hands{display:flex;flex-wrap:wrap;gap:10px;max-width:66ch}
+.hand{display:flex;align-items:center;gap:8px;font-family:var(--f-ui);font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:4px 12px 4px 4px;background:#fff}
+.hand b{display:grid;place-items:center;min-width:30px;height:30px;border-radius:50%;color:#fff;font-size:16px}
+.hand.me b{background:var(--me)} .hand.gloria b{background:var(--gl)} .hand.pip b{background:var(--pip)}
+.hand.win{box-shadow:0 0 0 3px var(--john)}
+
+.rollrow{display:flex;flex-direction:column;gap:8px;border:2.5px solid var(--ink);border-radius:14px;padding:10px 12px;max-width:66ch;background:#fff}
+.rollrow.gloria{border-color:var(--gl)} .rollrow.pip{border-color:var(--pip)} .rollrow.me{border-color:var(--me)}
+.rollrow .lbl{font-family:var(--f-ui);font-size:15px;font-weight:500}
+.dice{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.d6{width:44px;height:44px;border:2.5px solid var(--ink);border-radius:10px;background:#fff;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:5px}
+.d6 i{width:7px;height:7px;border-radius:50%;background:var(--ink);place-self:center;visibility:hidden}
+.d6.win{border-color:var(--ok);background:#E2F4E8}
+.d6.lose{opacity:.55}
+.dlabel{font-family:var(--f-ui);font-size:12px;color:var(--muted);display:block;text-align:center;margin-top:2px}
+.dwrap{display:flex;flex-direction:column;align-items:center}
+.ghost{opacity:.4;border-style:dashed}
+.tumble{animation:tumble .12s linear infinite}
+@keyframes tumble{50%{transform:rotate(12deg) translateY(-3px)}}
+.sum{font-family:var(--f-ui);font-weight:600;font-size:15px}
+.result{font-family:var(--f-ui);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;color:#fff;align-self:flex-start}
+.result.ok{background:var(--ok)} .result.bad{background:var(--bad)} .result.n{background:var(--ink)}
+
+#choices{position:sticky;bottom:0;background:var(--paper-2);border-top:3px solid var(--ink);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:10px}
+#choices:empty{display:none}
+#choices .prompt{flex:1 1 100%;margin:0;font-family:var(--f-ui);font-weight:600;font-size:15px}
+.opt{flex:1 1 220px;min-width:0;text-align:left;border:2.5px solid var(--ink);background:#fff;padding:9px 12px;cursor:pointer;border-radius:14px;box-shadow:3px 3px 0 var(--ink)}
+.opt:hover{background:#FFF7E6}
+.opt:active{transform:translate(3px,3px);box-shadow:none}
+.opt b{display:block;font-weight:700;line-height:1.25}
+.opt span{display:block;font-family:var(--f-ui);font-size:14px;color:var(--muted);margin-top:2px}
+.opt.mine{border-left:9px solid var(--me)}
+.opt.primary{background:var(--ink);color:#fff}
+.opt.primary span{color:#E2D6E6}
+.opt.quiet{background:var(--paper)}
+.opt.num{flex:0 0 auto;min-width:58px;text-align:center;padding:8px 10px}
+.opt.num b{font-family:var(--f-ui);font-size:20px}
+.opt.num span{font-size:12px}
+.opt:disabled{opacity:.45;cursor:not-allowed}
+.opt.roll{flex:1 1 100%;display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:center;padding:12px 16px}
+.opt.roll::before{content:"";grid-row:span 2;width:28px;height:28px;border-radius:7px;background:var(--john);border:2px solid #fff;transition:transform .2s}
+.opt.roll:hover::before{transform:rotate(90deg)}
+.opt.roll b{font-size:19px}
+
+/* side panel */
+.side{display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(12px + env(safe-area-inset-top,0px));min-width:0}
+.sheet{background:var(--paper);border:3px solid var(--ink);border-radius:20px;min-width:0;box-shadow:5px 5px 0 var(--ink)}
+.sheet summary{list-style:none;cursor:pointer;padding:10px 14px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 10px;align-items:baseline;border-bottom:2px solid var(--ink)}
+.sheet summary::-webkit-details-marker{display:none}
+.sheet .nm{font-family:var(--f-title);font-size:21px;line-height:1.1}
+.sheet .mini{font-family:var(--f-ui);font-size:13px;font-weight:600;color:var(--muted)}
+.sheet-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px}
+.vcard{border:2px solid currentColor;border-radius:14px;padding:9px 11px;position:relative}
+.vcard.me{color:var(--me);background:var(--me-bg)} .vcard.gloria{color:var(--gl);background:var(--gl-bg)} .vcard.pip{color:var(--pip);background:var(--pip-bg)}
+.vcard.active{box-shadow:0 0 0 3px var(--john), 3px 3px 0 3px var(--ink)}
+.vcard .vh{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-family:var(--f-ui);font-weight:700;font-size:17px}
+.vcard .wheel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--john);color:var(--ink);padding:1px 7px;border-radius:999px;white-space:nowrap}
+.vcard .vbody{color:var(--ink);font-size:14px;margin-top:4px;display:flex;flex-direction:column;gap:3px}
+.vcard .k{font-family:var(--f-ui);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:5px}
+.wp{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.wp i{width:13px;height:13px;border-radius:50%;border:2px solid currentColor;display:inline-block}
+.wp i.on{background:currentColor}
+.wp em{font-style:normal;font-family:var(--f-ui);font-weight:700;font-size:13px;margin-left:4px;color:var(--ink)}
+.sec{font-family:var(--f-ui);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--ink);padding-bottom:2px;margin-bottom:6px}
+.day{list-style:none;margin:0;padding:0;font-family:var(--f-ui);font-size:14px;display:flex;flex-direction:column;gap:2px}
+.day li{display:flex;gap:8px;color:var(--muted)}
+.day li b{min-width:68px;font-weight:600}
+.day li.now{color:var(--ink);font-weight:700}
+.day li.now b{background:var(--john);border-radius:6px;padding:0 5px}
+.day li.past{text-decoration:line-through;opacity:.7}
+.empty-sheet{font-style:italic;color:var(--muted);font-size:15px;margin:0}
+.about{background:var(--paper);border:3px solid var(--ink);border-radius:20px;box-shadow:5px 5px 0 var(--ink)}
+.about summary{cursor:pointer;padding:10px 14px;font-family:var(--f-ui);font-weight:700}
+.about div{padding:0 14px 14px;font-size:14.5px}
+.about ul{padding-left:1.1em;margin:.4em 0}
+
+.endcard{border:3px solid var(--ink);background:#fff;padding:16px 18px;display:flex;flex-direction:column;gap:12px;max-width:66ch;border-radius:18px;box-shadow:5px 5px 0 var(--ink)}
+.endcard h3{font-family:var(--f-title);font-weight:400;font-size:32px;line-height:1.05;margin:0}
+.scoretbl{width:100%;border-collapse:collapse;font-size:15px}
+.scoretbl th,.scoretbl td{text-align:left;padding:7px 6px;border-bottom:2px solid var(--paper-2);vertical-align:top}
+.scoretbl th{font-family:var(--f-ui);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.scoretbl td.pts{font-family:var(--f-ui);font-weight:700;font-size:22px;text-align:right;white-space:nowrap}
+.scoretbl .vn{font-family:var(--f-ui);font-weight:700}
+.scoretbl .vn.me{color:var(--me)} .scoretbl .vn.gloria{color:var(--gl)} .scoretbl .vn.pip{color:var(--pip)}
+.scoretbl small{display:block;color:var(--muted);font-size:13px}
+.freebox{background:var(--ink);color:var(--paper);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.freebox strong{font-family:var(--f-title);font-weight:400;font-size:22px;line-height:1.1}
+.freebox p{margin:0}
+.learned{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 14px;font-size:15px}
+.learned li::before{content:"✓ ";font-weight:800;color:var(--ok)}
+.learned li.no{color:var(--muted)} .learned li.no::before{content:"○ ";color:var(--muted)}
+.fine{font-family:var(--f-ui);font-size:13px;color:var(--muted);line-height:1.5;margin:0}
+.foot{font-family:var(--f-ui);font-size:14px;margin-top:26px;max-width:90ch;line-height:1.55;background:var(--brain-3);border:2px solid var(--ink);border-radius:14px;padding:10px 14px}
+
+@media (max-width: 880px){
+  .table{grid-template-columns:minmax(0,1fr)}
+  .side{order:-1;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+  .about{display:none}
+  .sheet-body{max-height:58vh;overflow:auto}
+  #log{padding:14px 14px 8px}
+  #choices{padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));gap:8px;max-height:62vh;overflow:auto}
+  .opt{padding:7px 10px}
+  .opt span{font-size:13px}
+  h1{-webkit-text-stroke:1.5px var(--ink);text-shadow:3px 3px 0 var(--ink)}
+}
+.about-m{display:none}
+@media (max-width: 880px){ .about-m{display:block;margin-top:18px} }
+@media (prefers-reduced-motion: reduce){ .tumble{animation:none} .opt.roll::before{transition:none} }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<div class="proto"><span><a href="../../" style="color:inherit">← All demos</a> · <b>FREE DEMO</b> · The full game is free too</span><span>Not an official Everyone Is John product</span></div>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">A solo demo of Everyone Is John</p>
+      <h1>John's Big Tuesday</h1>
+      <p class="tag">You are one of three Voices sharing the inside of John's head. John has a pumpkin festival at work, a bus to catch, and a grandma turning 80 tonight. The other two Voices have plans of their own.</p>
+    </div>
+    <div class="mast-side">
+      <span class="chip">Solo · about 15 to 20 minutes</span>
+      <a class="cta" href="https://overlycommonname.github.io/john.html" target="_blank" rel="noopener">Read the full free rules</a>
+    </div>
+  </header>
+  <div class="table">
+    <main class="story" aria-live="polite">
+      <div class="story-head">
+        <span class="scene" id="sceneName">Before John wakes up</span>
+        <span class="toggles">
+          <label class="toggle"><input type="checkbox" id="rulesToggle" checked> Show rules</label>
+          <label class="toggle"><input type="checkbox" id="autoToggle"> Auto-roll</label>
+        </span>
+      </div>
+      <div id="log"></div>
+      <div id="choices"></div>
+    </main>
+    <aside class="side" aria-label="Voices and the day">
+      <details class="sheet" id="sheet" open>
+        <summary><span class="nm" id="sumName">Inside John's head</span><span class="mini" id="sumMini">no Voices yet</span></summary>
+        <div class="sheet-body" id="sheetBody"><p class="empty-sheet">The Voices appear here: your skills, obsession, and Willpower, plus what you know about Gloria and Pip, who is at the wheel, and where John's day is up to.</p></div>
+      </details>
+      <details class="about" id="aboutBox">
+        <summary>About this demo</summary>
+        <div id="aboutBody"></div>
+      </details>
+    </aside>
+  </div>
+  <details class="about about-m">
+    <summary>About this demo</summary>
+    <div id="aboutBodyM"></div>
+  </details>
+  <p class="foot">Based on Everyone Is John © 2002 by Michael Sullivan (<a href="https://overlycommonname.github.io/john.html" target="_blank" rel="noopener">overlycommonname.github.io/john.html</a>), licensed under CC BY 4.0 (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">creativecommons.org/licenses/by/4.0/</a>). Rules restated in our own words. This is not an official Everyone Is John product and is not affiliated with or endorsed by Michael Sullivan. Demo text © 2026 RPG Demo Library. <a href="https://overlycommonname.github.io/john.html" target="_blank" rel="noopener"><b>Read the full free rules</b></a>.</p>
+</div>
+
+<script>
+(() => {
+const SAVE_KEY = 'eij-save-v1';
+const RULES_URL = 'https://overlycommonname.github.io/john.html';
+let autoRoll = false;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s);
+const logEl = $('#log'), choicesEl = $('#choices');
+const d6 = () => 1 + Math.floor(Math.random()*6);
+const sleep = ms => new Promise(r => setTimeout(r, reduced ? 0 : ms));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+try { if (localStorage.getItem('eij-rules') === 'off') { $('#rulesToggle').checked = false; document.body.classList.add('norules'); } } catch(e){}
+try { if (localStorage.getItem('eij-auto') === 'on') { $('#autoToggle').checked = true; autoRoll = true; } } catch(e){}
+$('#rulesToggle').addEventListener('change', e => { document.body.classList.toggle('norules', !e.target.checked); try { localStorage.setItem('eij-rules', e.target.checked ? 'on' : 'off'); } catch(err){} });
+$('#autoToggle').addEventListener('change', e => { autoRoll = e.target.checked; try { localStorage.setItem('eij-auto', autoRoll ? 'on' : 'off'); } catch(err){} });
+
+/* ---------- the Voices ---------- */
+const SKILLS = {
+  talk:{name:'Chatty', desc:'can talk to anyone about anything'},
+  body:{name:'Nimble', desc:'quick hands, quick feet, good timing'},
+  show:{name:'Showbiz', desc:'loves a crowd, loves a camera more'},
+  fix:{name:'Handy', desc:'fixes anything with a paper clip'},
+  plants:{name:'Green Thumb', desc:'knows every plant, seed, and bug'},
+  brain:{name:'Number Cruncher', desc:'sums, schedules, and bus routes'},
+  animals:{name:'Critter Whisperer', desc:'animals just get it'},
+};
+const OBS = {
+  hifive:{lvl:1, name:'High Five', text:'Get John to high-five someone.'},
+  hat:{lvl:2, name:'Hat Trick', text:'Get John to wear a hat that belongs to someone else.'},
+  tv:{lvl:3, name:'Local Celebrity', text:'Get John onto the local TV news.'},
+  sing:{lvl:2, name:'Showstopper', text:'Get John to sing where at least three people can hear.'},
+  dog:{lvl:1, name:'Good Boy', text:'Get John to pet a dog (with permission, always).'},
+};
+const MY_OBS = ['hifive','hat','tv'];
+const MY_SKILLS = ['talk','body','show','fix','plants','brain'];
+const RIVALS = {
+  gloria:{name:'Gloria', skills:['show','talk'], obs:'sing', bigBid:3, spendTo:2,
+    blurb:'Loud. Dramatic. Calls everyone "darling." Gloria has never once used an indoor voice, and she does not plan to start.',
+    win:'Gloria grabs the wheel of John\'s brain with both hands and honks the horn.',
+    idle:'Nothing here for me. Keep it moving, John, darling.'},
+  pip:{name:'Pip', skills:['animals','plants','brain'], obs:'dog', bigBid:2, spendTo:3,
+    blurb:'Small. Polite. Says "sorry" to furniture. Pip took a third skill, so Pip starts with only 7 Willpower.',
+    win:'Pip climbs into the driver\'s seat and carefully adjusts every mirror.',
+    idle:'Um. I will just. Keep us on schedule. Sorry.'},
+};
+const NAMES = {me:'You', gloria:'Gloria', pip:'Pip'};
+const ORDER = ['me','gloria','pip'];
+
+/* ---------- John's day ----------
+   each action: id, label, say, skill, obs (what it completes), also (other obsessions it completes), ok, fail, quip (what a rival says) */
+const SCENES = [
+ {key:'home', time:'7:00 AM', title:'Rise and Shine', beats:2, wake:true, spot:'on his kitchen floor, next to the toast',
+  intro:['John\'s alarm plays the calm ocean sounds he picked. It sounds like a seagull arguing with a fax machine. He sits up in his little studio apartment. On the back of his hand, in marker, he wrote: DO NOT BE LATE.',
+   'Today is a big one. The Pumpkin Festival at work. Grandma June\'s 80th birthday tonight. Out in the hallway, the neighbor\'s beagle, Biscuit, is waiting for his walk. Mr. Okafor\'s flat cap hangs on the hook by their door. Rosa the mail carrier speed walks past the window. The shower has excellent acoustics, and the window is open.'],
+  actions:[
+   {id:'biscuit', label:'Pet Biscuit, the beagle in the hallway', say:'Is that Biscuit? Hello, Biscuit.', skill:'animals', obs:'dog', quip:'Biscuit is RIGHT THERE. His ears are like pancakes.',
+    ok:'"He\'d love that," says Mrs. Okafor. Biscuit rolls over so fast he slides into the recycling bin. John gives the best belly rub of his life.',
+    fail:'John crouches to say hi. Biscuit sneezes on his shoe and trots off with great dignity. "He\'s not a morning dog," says Mrs. Okafor.'},
+   {id:'shower', label:'Sing in the shower with the window wide open', say:'Shower concert. Window open. Let\'s go.', skill:'show', obs:'sing', quip:'Shower acoustics. Open window. Darling, this is our moment.',
+    ok:'John belts a power ballad into the shampoo bottle. Across the courtyard, three neighbors step onto their balconies and clap. One holds up her phone flashlight like a lighter.',
+    fail:'John opens his mouth and out comes a polite cough, in tune. The pigeon on the windowsill leaves.'},
+   {id:'rosa', label:'Catch Rosa the mail carrier for a high five', say:'Rosa! Up top!', skill:'body', obs:'hifive',
+    ok:'Rosa is moving fast. John times it perfectly. SMACK. "Nice form!" she calls, already halfway down the block.',
+    fail:'John\'s hand meets the air where Rosa was a second ago. He turns it into a wave. She waves back. Nice, but not a high five.'},
+   {id:'cap', label:'Ask Mr. Okafor to borrow his flat cap for the day', say:'Mr. Okafor, could I borrow that cap?', skill:'talk', obs:'hat',
+    ok:'"This cap has seen three countries and one very good wedding," says Mr. Okafor. "Bring it back tonight." John puts it on. He looks like a man who knows things about jazz.',
+    fail:'John means to ask nicely. What comes out is "Is that a hat?" Mr. Okafor agrees that it is a hat, and takes it inside.'},
+  ],
+  safe:{label:'Make toast and head for the bus', say:'Toast. Keys. Bus. Go.', text:'John makes toast, finds his keys in the fridge, and reaches the bus stop with forty seconds to spare.'},
+  outro:'John grabs his toast and jogs for the 8:05 bus.'},
+
+ {key:'bus', time:'8:15 AM', title:'The Number 9 Bus', beats:2, nap:true, spot:'with his head on the bus window',
+  intro:['The Number 9 hums along Maple Street. Dolores the driver has a bobblehead of herself on the dashboard. A class of second graders fills the back, practicing a song for their visit to the senior center.',
+   'Up front sits a dog trainer with a fluffy golden puppy. The puppy wears a vest that says ASK TO PET ME, I\'M IN TRAINING. On the seat next to John is a lost sun hat with a broken strap.'],
+  napText:'The bus is warm. The engine hums. The second graders are on verse nine. John\'s eyelids get heavy.',
+  actions:[
+   {id:'waffles', label:'Ask the trainer if John can pet the puppy', say:'Excuse me, may I say hello to your puppy?', skill:'animals', obs:'dog', quip:'The vest says ask! We can ask! We are SO good at asking.',
+    ok:'"Sure, she needs practice meeting people," says the trainer. The puppy, Waffles, sits perfectly still. Then she licks John\'s entire wrist. Training is going well.',
+    fail:'John reaches out a little too fast. "Ask first, please," the trainer says kindly. Waffles is learning to stay calm, and now so is John.'},
+   {id:'choir', label:'Join the second graders\' song', say:'Mind if I join in? I do a mean bass line.', skill:'show', obs:'sing', quip:'A CHOIR. They need a bass. They need ME.',
+    ok:'John adds a deep bass line. The kids lose their minds with joy. Twenty voices plus one, all the way to Elm Street. Their teacher mouths THANK YOU.',
+    fail:'John comes in a verse behind and in the wrong key. A second grader turns around and says, "No." Fair.'},
+   {id:'dolores', label:'Tell Dolores she beat the schedule by four minutes', say:'Dolores, you are four minutes early. That has to be a record.', skill:'brain', obs:'hifive',
+    ok:'John knows the timetable by heart. "Four minutes early, Dolores. A record." She holds up a hand without looking. SMACK. Pure professional joy.',
+    fail:'John does the math out loud and gets it wrong. Dolores is in fact two minutes late, and now the whole bus knows.'},
+   {id:'sunhat', label:'Fix the lost sun hat and wear it so its owner can spot it', say:'I can fix that strap. Then I\'ll wear it so the owner sees it.', skill:'fix', obs:'hat',
+    ok:'A paper clip, a twist tie, done. John puts the sun hat on. Two stops later a woman gasps. "My hat! You fixed it?" She tells him to wear it until his stop. It suits him.',
+    fail:'The paper clip pings off and bonks Dolores\'s bobblehead. The strap is now more broken. John puts the hat in the lost and found bin, a little embarrassed.'},
+  ],
+  safe:{label:'Look out the window and enjoy the ride', say:'Let\'s just enjoy the view.', text:'John watches the town go by. A man walks six dogs at once. A bakery opens its door. Pleasant.'},
+  outro:'The bus hisses to a stop outside Greenleaf Garden Center.'},
+
+ {key:'work', time:'9:30 AM', title:'The Pumpkin Festival', beats:3, spot:'on a hay bale by the mums',
+  intro:['Greenleaf Garden Center is all hay bales and orange. Marisol, John\'s boss, wears a hat shaped like a pumpkin and the face of someone on her fourth coffee. "Channel 8 is here," she whispers. "Be normal." A news van is parked by the mulch.',
+   'John\'s coworker Teddy is wrestling the prize pumpkin, Big Gary, all 300 pounds of him, off a truck. Pickles, the shop corgi, watches everything from his bed. Pickles trusts no one.'],
+  gm:{name:'Festival chaos', rows:[
+   {t:'Big Gary wobbles. A smaller pumpkin escapes, rolls across the floor, and lands right on John\'s foot. Ouch. He is fine, but he is hopping.', hurt:true},
+   {t:'A hose comes loose and gives John a surprise shower. Refreshing. Damp, not hurt.'},
+   {t:'A toddler hands John one acorn, very seriously. John accepts it with equal seriousness.'},
+   {t:'A customer asks if mulch is "like dirt, but fancy." John says yes.'},
+   {t:'Marisol drops her clipboard into a pumpkin. Nobody mentions it.'},
+   {t:'The Channel 8 reporter waves at John. Is that a sign?'}]},
+  actions:[
+   {id:'pickles', label:'Win over Pickles the corgi for a belly rub', say:'Pickles. Buddy. Can we be friends?', skill:'animals', obs:'dog', quip:'Pickles has never liked us. Today, that changes.',
+    ok:'John asks Teddy if Pickles is up for visitors, then lies on the floor and becomes very boring. Pickles sniffs him, decides he is furniture, and flops over for a belly rub. Teddy takes a photo.',
+    fail:'Pickles gives John a long look. Then he drags his bed two feet to the left.'},
+   {id:'jingle', label:'Sing the Greenleaf jingle for the Channel 8 camera', say:'Is the camera rolling? I know the jingle.', skill:'show', obs:'sing', also:['tv'], quip:'Live television. I was born for this. Well, I was born in John\'s head. Same thing.',
+    ok:'"Greenleaf, Greenleaf, grow with me!" John sings, live on Channel 8, with jazz hands. The crew and a dozen shoppers cheer. Marisol cries a little.',
+    fail:'John clears his throat for the camera just as a forklift beeps right through the shot. "Back to you in the studio," says the reporter.'},
+   {id:'gary', label:'Tell the Channel 8 reporter the life story of Big Gary', say:'Want to know how we grew a 300-pound pumpkin?', skill:'plants', obs:'tv',
+    ok:'John knows Big Gary\'s whole story, seed to giant. The reporter says "That is fascinating," and means it. John is on the noon news, pointing at a pumpkin like a proud dad.',
+    fail:'John says "Cucurbita maxima" with so much force that the reporter takes a step back. They film the hay bales instead.'},
+   {id:'teddy', label:'Help Teddy haul Big Gary, then celebrate', say:'Teddy, on three. One, two, THREE.', skill:'body', obs:'hifive',
+    ok:'They lift with their legs. Big Gary lands on his throne. Teddy turns, eyes shining. SMACK. The high five echoes off the greenhouse.',
+    fail:'Big Gary barely budges. Teddy makes John sit down and drink some water. No celebrating yet.'},
+   {id:'pumpkinhat', label:'Ask Marisol if John can wear the pumpkin hat on camera', say:'Marisol, what if I wore the pumpkin hat for the team?', skill:'talk', obs:'hat',
+    ok:'"You would do that for Greenleaf?" Marisol places the pumpkin hat on John\'s head like a crown. It is warm and smells like cinnamon.',
+    fail:'Marisol clutches the hat. "This hat is my brand, John." She is not wrong.'},
+  ],
+  safe:{label:'Get to work restocking the mums', say:'Mums don\'t restock themselves.', text:'John restocks forty pots of mums in perfect rows. Marisol gives him a thumbs up from across the lot.'},
+  outro:'At noon a horn toots in the parking lot. The taco truck is here.'},
+
+ {key:'lunch', time:'12:30 PM', title:'Lunch at Taco Fortuna', beats:2, spot:'at a picnic table, holding half a taco',
+  intro:['Taco Fortuna parks outside the garden center every Tuesday. The line is long and happy. The truck radio plays a song where everybody knows the chorus. Lupe, the cook, wears a paper hat, and the truck\'s awning is flapping loose in the wind.',
+   'A dachshund in a tiny striped sweater waits in line with her owner. Behind John, a man in a bright blazer checks his teeth in a spoon. It\'s Chip Carver, the Channel 8 weatherman, doing a live weather shot from the lunch line.'],
+  actions:[
+   {id:'sweater', label:'Ask to pet the dachshund in the sweater', say:'I love her sweater. May I say hi?', skill:'animals', obs:'dog', quip:'She is wearing. A SWEATER.',
+    ok:'"Her name is Noodle," says the owner. "Go ahead." Noodle leans her whole long body into John\'s hand, one section at a time.',
+    fail:'Noodle is busy staring at the taco truck with total focus. She does not have time for John. Respect.'},
+   {id:'chorus', label:'Sing the chorus with the whole line', say:'Come on, everybody knows this part!', skill:'show', obs:'sing', quip:'Everybody knows this chorus. EVERYBODY.',
+    ok:'John starts the chorus and the whole line joins in, even Chip Carver. Lupe bangs a spatula on the counter to keep the beat.',
+    fail:'John starts the chorus exactly as the song ends. He sings one line alone in the silence. Then he orders.'},
+   {id:'weather', label:'Wave in the background of Chip Carver\'s live weather shot', say:'Hi, Mom! Hi, Channel 8!', skill:'body', obs:'tv',
+    ok:'John times it perfectly: a friendly wave over Chip\'s shoulder just as the camera light goes red. "And it\'s a sunny one, folks!" John is on TV, waving, holding a taco.',
+    fail:'John steps into the shot one second after it ends. The camera guy gives him a thumbs up anyway.'},
+   {id:'lupe', label:'Tell Lupe her taco changed John\'s life', say:'Lupe. This taco. My whole life is different now.', skill:'talk', obs:'hifive',
+    ok:'Lupe leans out the window. "Changed your LIFE?" She holds up a hand. SMACK. Slightly greasy. Perfect.',
+    fail:'John means to say "changed my life." He says "changed my wife." He does not have a wife. Lupe nods slowly and hands him extra napkins.'},
+   {id:'awning', label:'Fix the truck\'s flapping awning for Lupe', say:'Hang on, Lupe, I can fix that awning.', skill:'fix', obs:'hat',
+    ok:'A bungee cord and a clever knot, and the awning is solid. Lupe tosses John her spare paper hat. "You\'re on staff now." He wears it with pride.',
+    fail:'The bungee cord snaps back and the awning flaps harder. Lupe says she will call her cousin.'},
+  ],
+  safe:{label:'Eat the taco in peaceful silence', say:'Shh. Taco time.', text:'John eats a perfect taco at a picnic table in the sun. Nobody in his head says anything for three whole minutes.'},
+  outro:'Back inside, a sign on the break room door says: BUDGET MEETING, 3 PM, ATTENDANCE MANDATORY.'},
+
+ {key:'meeting', time:'3:00 PM', title:'The Quarterly Budget Meeting', beats:2, nap:true, spot:'in a break room chair, mid-slide',
+  intro:['Every third Tuesday, Marisol holds the budget meeting in the break room. There are seven slides. Each slide is mostly the word MULCH. Teddy is drawing a horse on his notepad, wearing his lucky beanie. The new hire, Priya, is taking very careful notes.'],
+  napText:'The radiator ticks. Slide three is a bar chart of mulch. John\'s chin starts to sink toward his chest.',
+  actions:[
+   {id:'budgetsong', label:'Turn the budget into a song', say:'What if the budget had a melody?', skill:'show', obs:'sing', quip:'Slide five has a rhythm to it. Don\'t you think, darling?',
+    ok:'"Mulch is up, the fertilizer\'s down..." to the tune of a lullaby. Marisol, Teddy, and Priya join in on the chorus. Best meeting ever.',
+    fail:'John stands to sing, and the radiator clanks loud enough to drown him out. He sits back down.'},
+   {id:'slide5', label:'Spot the math mistake on slide five', say:'Wait. Can we go back to slide five?', skill:'brain', obs:'hifive',
+    ok:'"That\'s a decimal point, not a fly," John says. They are up $400, not down. Marisol reaches across the table. SMACK. Someone knocks over a muffin.',
+    fail:'John points out a mistake. It is not a mistake. Slide five is fine. Marisol thanks him for "being engaged."'},
+   {id:'beanie', label:'Ask to borrow Teddy\'s lucky beanie for the numbers', say:'Teddy, could the beanie bring us some luck?', skill:'talk', obs:'hat',
+    ok:'Teddy hands it over solemnly. "It has never lost a budget." The beanie is itchy and full of power.',
+    fail:'"The beanie does not leave my head," says Teddy. "That is a rule." He has a whole rule.'},
+  ],
+  safe:{label:'Nod thoughtfully and wait it out', say:'Just nod. Nod like you understand mulch.', text:'John nods thoughtfully through all seven slides. Marisol says he is a great listener.'},
+  outro:'At 5 o\'clock John clocks out and catches a ride to Lucky Strike Lanes.'},
+
+ {key:'party', time:'7:00 PM', title:'Grandma June Turns 80', beats:3, spot:'in a plastic bowling alley chair, under a pile of coats',
+  intro:['Lucky Strike Lanes. Lane 12 is covered in balloons. Grandma June, 80 today, wears a sash that says BIRTHDAY QUEEN and bowls like the pins owe her money. Grandpa Lou wears his lucky bowling cap from 1979. Duchess, Grandma\'s shy rescue greyhound, is lying on three coats at once.',
+   'And the Channel 8 van is back. They are doing a story on the city\'s oldest league bowler. That\'s Grandma.'],
+  gm:{name:'Party surprises', rows:[
+   {t:'John\'s bowling ball slips off his thumb and drops onto his toe. Ouch. He is fine. Grandma kisses his forehead and tells him to walk it off.', hurt:true},
+   {t:'The jukebox plays Grandma\'s favorite song. She does a little shimmy.'},
+   {t:'Cousin Denise brings a cake shaped like a bowling pin. It is leaning.'},
+   {t:'Grandpa Lou tells the 1979 story again. It gets better every year.'},
+   {t:'The shoe rental guy gives John free socks. A great omen.'},
+   {t:'Duchess sneezes near the cake. Only a little. They cut around it.'}]},
+  actions:[
+   {id:'bday', label:'Lead the whole alley in Happy Birthday', say:'Everybody! For Grandma June! Ready?', skill:'show', obs:'sing', also:['hifive'], quip:'Happy Birthday. The greatest song ever written. Stand on a chair, John.',
+    ok:'John stands on a chair (Grandpa holds it steady) and starts the song. Lane 12 joins in. Then lanes 11 and 13. Then the whole alley. When it ends, Grandma June gives John a high five with happy tears in her eyes.',
+    fail:'John starts way too high. By "dear Grandma" he is basically a whistle. Cousin Denise takes over. Grandma beams anyway.'},
+   {id:'duchess', label:'Ask Grandma if John can pet Duchess', say:'Grandma, could I say hi to Duchess?', skill:'animals', obs:'dog', quip:'Duchess is shy. Like me. We should be friends.',
+    ok:'"Gently, she\'s shy," says Grandma. Duchess sniffs John\'s hand, then lays her long nose in his lap and sighs. John will not move for ten minutes.',
+    fail:'Duchess looks at John. Then at the coats. She chooses the coats.'},
+   {id:'strike', label:'Bowl a strike for Grandma', say:'This one is for you, Grandma.', skill:'body', obs:'hifive',
+    ok:'The ball curves, hangs on the edge, and hits the pocket. STRIKE. Grandma June slaps his palm so hard it rings.',
+    fail:'Gutter ball. "That is how I bowled in 1962," says Grandma. "Then I got good."'},
+   {id:'luckycap', label:'Ask Grandpa Lou to lend John his 1979 lucky cap', say:'Grandpa, could I borrow the lucky cap for one frame?', skill:'talk', obs:'hat',
+    ok:'Grandpa Lou takes off the cap like it is a crown and sets it on John\'s head. "It knows what to do," he says. It smells like popcorn and history.',
+    fail:'"Not this cap," says Grandpa Lou, holding it to his heart. "Ask me again when you\'re 80."'},
+   {id:'story', label:'Tell Channel 8 how Grandma taught John to bowl', say:'Can I tell you how Grandma taught me to bowl?', skill:'show', obs:'tv',
+    ok:'John tells it on camera: Saturday mornings, bumper lanes, and Grandma\'s one rule, "Aim with your heart." That night, John and Grandma June are on the 10 o\'clock news, side by side.',
+    fail:'John gets so nervous he says, "Grandma is 80, and so am I." They use the clip of Grandma bowling a strike instead. Fair enough.'},
+  ],
+  safe:{label:'Eat cake and enjoy the party', say:'Let\'s just have cake with Grandma.', text:'John eats a slice of leaning cake next to Grandma June. She tells him he is her favorite. She tells everyone that. It still counts.'},
+  outro:'The party winds down. Grandma June hugs everyone twice.'},
+];
+
+/* ---------- state ---------- */
+let S = null;
+function fresh(){
+  return {scene:0, active:null, beatsLeft:0, done:[], used:[], seen:[],
+    v:{me:{wp:10, skills:[], obs:null}, gloria:{wp:10}, pip:{wp:7}},
+    score:{me:[], gloria:[], pip:[]}, revealed:{gloria:[], pip:[]}};
+}
+const mark = k => { if (!S.used.includes(k)) S.used.push(k); };
+function ruleOnce(k, html){ if (S.seen.includes(k)) return; S.seen.push(k); rule(html); }
+const skillsOf = k => k === 'me' ? S.v.me.skills : RIVALS[k].skills;
+const obsOf = k => k === 'me' ? S.v.me.obs : RIVALS[k].obs;
+const ownerOf = o => ORDER.find(k => obsOf(k) === o) || null;
+const pts = k => S.score[k].length * (OBS[obsOf(k)] ? OBS[obsOf(k)].lvl : 0);
+const allOut = () => ORDER.every(k => S.v[k].wp <= 0);
+
+function save(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify({v:1, S, log:logEl.innerHTML})); } catch(e){} }
+function loadSave(){ try { const raw = localStorage.getItem(SAVE_KEY); if (!raw) return null; const d = JSON.parse(raw); if (d && d.v === 1 && d.S && d.S.v && d.S.v.me && d.S.v.me.obs && typeof d.log === 'string' && SCENES[d.S.scene]) return d; } catch(e){} return null; }
+function clearSave(){ try { localStorage.removeItem(SAVE_KEY); } catch(e){} }
+
+/* ---------- log ---------- */
+function add(cls, html){ const el = document.createElement('div'); if (cls) el.className = cls; el.innerHTML = html; logEl.appendChild(el); requestAnimationFrame(() => el.scrollIntoView({block:'nearest', behavior: reduced ? 'auto' : 'smooth'})); return el; }
+const nar = h => add('line', h);
+const npc = (who, h) => add('line npc', `<span class="who">${who}</span>${h}`);
+const you = h => add('line you', h);
+const voice = (k, h) => add('line voice ' + k, `<span class="who">${NAMES[k]}</span>${h}`);
+const rule = h => add('rule', h);
+function choose(opts, prompt){
+  return new Promise(res => {
+    choicesEl.innerHTML = '';
+    if (prompt){ const p = document.createElement('p'); p.className = 'prompt'; p.textContent = prompt; choicesEl.appendChild(p); }
+    opts.forEach(o => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt' + (o.cls ? ' ' + o.cls : '');
+      b.innerHTML = `<b>${o.label}</b>${o.sub ? `<span>${o.sub}</span>` : ''}`; if (o.disabled) b.disabled = true;
+      if (o.aria) b.setAttribute('aria-label', o.aria);
+      b.addEventListener('click', () => { choicesEl.innerHTML = ''; if (o.say !== false) you(o.say || o.label); res(o.id); });
+      choicesEl.appendChild(b);
+    });
+    requestAnimationFrame(() => choicesEl.scrollIntoView({block:'nearest', behavior: reduced ? 'auto' : 'smooth'}));
+    const first = choicesEl.querySelector('button:not(:disabled)'); if (first && matchMedia('(pointer:fine)').matches) first.focus({preventScroll:true});
+  });
+}
+const cont = (label='Continue') => choose([{id:'c', label, cls:'primary', say:false}]);
+async function waitRoll(sub, btn){ if (autoRoll) return; await choose([{id:'r', label: btn || 'Roll the die', sub, cls:'primary roll', say:false}]); }
+
+/* ---------- dice ---------- */
+const PIPS = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function dieEl(label){ const w = document.createElement('div'); w.className = 'dwrap'; const e = document.createElement('div'); e.className = 'd6 ghost'; e.setAttribute('role','img'); e.setAttribute('aria-label','d6, not rolled yet'); for (let i=0;i<9;i++){ const p = document.createElement('i'); p.setAttribute('aria-hidden','true'); e.appendChild(p); } const l = document.createElement('span'); l.className = 'dlabel'; l.textContent = label; w.append(e, l); return {w, e}; }
+function face(e, v){ [...e.children].forEach((p,i) => p.style.visibility = (PIPS[v]||[]).includes(i) ? 'visible' : 'hidden'); e.setAttribute('aria-label','d6 showing '+v); }
+async function tumble(es){ es.forEach(e => { e.classList.remove('ghost'); e.classList.add('tumble'); }); for (let t=0;t<(reduced?1:9);t++){ es.forEach(e => face(e, d6())); await sleep(60); } es.forEach(e => e.classList.remove('tumble')); }
+const odds = need => need <= 1 ? 'automatic' : need > 6 ? 'impossible' : `${7-need} in 6`;
+
+/* ---------- the AI rules (shown in About) ---------- */
+function lookScene(){ return S.beatsLeft > 0 ? SCENES[S.scene] : SCENES[S.scene + 1] || null; }
+function hasHook(k){
+  const sc = lookScene(); if (!sc) return false;
+  const cur = sc === SCENES[S.scene];
+  return sc.actions.some(a => a.obs === RIVALS[k].obs && !(cur && S.done.includes(a.id)));
+}
+function aiBid(k){
+  const r = RIVALS[k], wp = S.v[k].wp;
+  if (wp <= 0) return 0;
+  let bid = hasHook(k) ? r.bigBid : (wp >= 6 ? 1 : 0);
+  bid = Math.min(bid, Math.max(0, wp - 2));      // keep 2 Willpower back for rolling
+  if (d6() === 6) bid = Math.min(wp, bid + 1);   // a 1-in-6 bluff
+  return bid;
+}
+const aiSpend = (k, need) => Math.min(S.v[k].wp, Math.max(0, need - RIVALS[k].spendTo));
+function aiPick(k, sc){ return sc.actions.find(a => a.obs === RIVALS[k].obs && !S.done.includes(a.id)) || null; }
+
+/* ---------- control ---------- */
+const WHY = {
+  wake:'John is waking up, so control is up for grabs. The Voices settle who is in charge before anyone even says where John is.',
+  fail:'A failed roll throws control back up for grabs.',
+  obs:'The Voice in control just completed its own obsession, so control is up for grabs again.',
+  hurt:'John got hurt, so control is up for grabs.'};
+async function controlTest(reason){
+  if (reason === 'fail') mark('failtest');
+  if (reason === 'obs') mark('obstest');
+  if (reason === 'hurt') mark('hurt');
+  ruleOnce('why-' + reason, WHY[reason]);
+  const bids = {gloria:aiBid('gloria'), pip:aiBid('pip')};
+  ruleOnce('bid', 'Bidding: every Voice secretly picks how much Willpower to bid, then everyone opens their hand at once. Zero is fine. Bluffing is part of the game. The highest bid takes control.');
+  const wp = S.v.me.wp;
+  if (wp <= 0){
+    nar('You have no Willpower left, so you bid 0 and watch.');
+    bids.me = 0; await cont('Open the hands');
+  } else {
+    const opts = []; for (let n=0;n<=wp;n++) opts.push({id:String(n), label:String(n), sub: n === 0 ? 'pass' : (n === 1 ? 'point' : 'points'), cls:'num', aria:`Bid ${n} Willpower`, say:`You hide ${n} Willpower in your fist.`});
+    bids.me = Number(await choose(opts, `Control is up for grabs. How much Willpower do you bid? You have ${wp}. Gloria has ${S.v.gloria.wp}. Pip has ${S.v.pip.wp}.`));
+  }
+  mark('bid');
+  const top = Math.max(...ORDER.map(k => bids[k]));
+  let tied = ORDER.filter(k => bids[k] === top);
+  const hands = add('hands', ORDER.map(k => `<span class="hand ${k}" data-k="${k}"><b>${bids[k]}</b>${NAMES[k]}</span>`).join(''));
+  hands.setAttribute('aria-label', 'Bids revealed: ' + ORDER.map(k => `${NAMES[k]} ${bids[k]}`).join(', '));
+  let winner = tied[0];
+  if (tied.length > 1) winner = await rollOff(tied, bids);
+  const wh = hands.querySelector(`[data-k="${winner}"]`); wh.classList.add('win'); wh.insertAdjacentText('beforeend', ' wins');
+  S.v[winner].wp -= bids[winner];
+  ruleOnce('pay', 'Only the winner pays its bid. The losing Voices keep the Willpower they bid.');
+  const was = S.active; S.active = winner;
+  render();
+  if (winner === 'me') nar(was === 'me' ? '<strong>You keep the wheel.</strong> John\'s hands are still your hands.' : '<strong>You have the wheel.</strong> John\'s hands are your hands now.');
+  else nar(`<strong>${was === winner ? RIVALS[winner].name + ' keeps the wheel.' : RIVALS[winner].win}</strong>`);
+  if (!S.seen.includes('active')){ ruleOnce('active', 'The Voice in control decides what John does. Whenever John might plausibly mess it up, that Voice rolls one die. Everyone else waits for their next chance to bid.'); }
+}
+async function rollOff(tied, bids){
+  ruleOnce('tie', 'Tied for the highest bid? The tied Voices each roll a die. The highest roll takes control.');
+  mark('tie');
+  nar(`A tie at ${bids[tied[0]]}: ${tied.map(k => NAMES[k]).join(', ')}. Roll off!`);
+  while (true){
+    const row = add('rollrow', `<span class="lbl">Roll-off: highest die wins</span>`);
+    const dz = document.createElement('div'); dz.className = 'dice'; row.appendChild(dz);
+    const els = tied.map(k => dieEl(NAMES[k])); els.forEach(x => dz.appendChild(x.w));
+    if (tied.includes('me')) await waitRoll('Roll your die for the tie-break', 'Roll for the tie');
+    await tumble(els.map(x => x.e));
+    const vals = tied.map(() => d6());
+    vals.forEach((v,i) => face(els[i].e, v));
+    const hi = Math.max(...vals);
+    const best = tied.filter((k,i) => vals[i] === hi);
+    vals.forEach((v,i) => els[i].e.classList.add(v === hi ? 'win' : 'lose'));
+    if (best.length === 1) return best[0];
+    add('', `<span class="result n">Tied again</span>`);
+    tied = best;
+  }
+}
+
+/* ---------- rolling ---------- */
+async function doRoll(k, act){
+  const has = skillsOf(k).includes(act.skill);
+  const need = has ? 3 : 6;
+  mark(has ? 'skill' : 'noskill');
+  ruleOnce(has ? 'skill' : 'noskill', has ? `With a skill that fits the job, the Voice needs a 3 or better on one die. This one uses ${SKILLS[act.skill].name}.` : 'With no skill that fits the job, the Voice needs a 6.');
+  let spend = 0;
+  if (k === 'me'){
+    const wp = S.v.me.wp;
+    if (wp > 0){
+      ruleOnce('spend', 'Before rolling, the Voice in control can spend Willpower. Each point spent adds 1 to the die. Spend enough and success is certain.');
+      const opts = []; for (let n=0;n<=Math.min(wp, need-1);n++) opts.push({id:String(n), label:`Spend ${n}`, sub:`need ${Math.max(1, need-n)}+ · ${odds(need-n)}`, cls: n === 0 ? 'quiet' : '', say: n ? `I'll put ${n} Willpower into this.` : 'No Willpower. Just luck.'});
+      spend = Number(await choose(opts, `${has ? SKILLS[act.skill].name + ' fits: you need 3.' : 'No skill fits: you need 6.'} Spend Willpower first? You have ${wp}.`));
+    }
+  } else {
+    spend = aiSpend(k, need);
+    if (has && !S.revealed[k].includes(act.skill)){ S.revealed[k].push(act.skill); }
+  }
+  if (spend){ S.v[k].wp -= spend; mark('spend'); }
+  render();
+  const target = need - spend;
+  const row = add('rollrow ' + k, `<span class="lbl"><strong>${NAMES[k]}</strong>: ${esc(act.label)} · ${has ? SKILLS[act.skill].name + ', need 3' : 'no skill, need 6'}${spend ? ` · ${spend} Willpower spent (+${spend})` : ''}</span>`);
+  if (target <= 1){
+    mark('auto');
+    ruleOnce('auto', 'Enough Willpower was spent that even a 1 would succeed, so there is no roll at all.');
+    add('', `<span class="result ok">Automatic success</span>`);
+    return true;
+  }
+  const dz = document.createElement('div'); dz.className = 'dice'; row.appendChild(dz);
+  const {w, e} = dieEl(k === 'me' ? 'your die' : NAMES[k] + '\'s die'); dz.appendChild(w);
+  if (k === 'me') await waitRoll(`1d6${spend ? ' + ' + spend : ''}, need ${need} or more`);
+  else await sleep(350);
+  await tumble([e]);
+  const v = d6(); face(e, v);
+  const ok = v + spend >= need;
+  e.classList.add(ok ? 'win' : 'lose');
+  const sc = document.createElement('span'); sc.className = 'sum'; sc.textContent = `Rolled ${v}${spend ? ` + ${spend} = ${v+spend}` : ''}, needed ${need}`; row.appendChild(sc);
+  const st = document.createElement('span'); st.className = 'result ' + (ok ? 'ok' : 'bad'); st.textContent = ok ? 'Success' : 'Failure'; row.appendChild(st);
+  return ok;
+}
+
+/* ---------- scoring ---------- */
+function scoreObs(list, where){
+  let selfDone = false;
+  list.forEach(o => {
+    const k = ownerOf(o); if (!k) return;
+    S.score[k].push(where);
+    if (k === S.active) selfDone = true; else if (k === 'me' || S.active === 'me') mark('offturn');
+    if (k === 'me'){
+      const lv = OBS[o].lvl;
+      add('score-ev me', `★ Your obsession, ${esc(OBS[o].name)}! +${lv} point${lv > 1 ? 's' : ''} (level ${lv}). You have ${pts('me')}.`);
+      if (S.active !== 'me') ruleOnce('offturn', 'Obsessions count no matter who is driving. Another Voice made your thing happen, and you still score.');
+    } else {
+      add('score-ev ' + k, k === 'gloria' ? 'Somewhere in John\'s head, Gloria does a loud little victory dance. She just scored her obsession. What is it? You will find out at the end.' : 'Somewhere in John\'s head, Pip lets out a tiny happy squeak. Pip just scored an obsession. Which one? That stays secret until the end.');
+      if (S.active === 'me') ruleOnce('offturn', 'Obsessions count no matter who is driving. You just helped another Voice score, maybe without meaning to.');
+    }
+  });
+  ruleOnce('lvl', 'Each obsession has a level: 1 is easy, 2 is harder, 3 is nearly impossible. Every time it happens, its Voice scores points equal to its level.');
+  render();
+  return selfDone;
+}
+
+/* ---------- GM rolls ---------- */
+async function gmRoll(name, rows){
+  const row = add('rollrow', `<span class="lbl">Everyone Else (the GM) rolls: ${esc(name)}</span>`);
+  const dz = document.createElement('div'); dz.className = 'dice'; row.appendChild(dz);
+  const {w, e} = dieEl('GM'); dz.appendChild(w);
+  await sleep(250); await tumble([e]); const v = d6(); face(e, v);
+  return v;
+}
+
+/* ---------- a scene ---------- */
+async function playScene(i){
+  const sc = SCENES[i];
+  S.scene = i; S.done = []; S.beatsLeft = sc.beats;
+  save();
+  $('#sceneName').textContent = `${sc.time} · ${sc.title}`;
+  add('scenebreak', `<small><i>${sc.time}</i>Scene ${i+1} of ${SCENES.length}</small><span>${sc.title}</span>`);
+  render();
+  if (allOut()) return 'asleep';
+  if (sc.wake){ nar('John\'s eyes open. Before he even knows where he is, three Voices lunge for the controls.'); await controlTest('wake'); }
+  sc.intro.forEach(p => npc('Everyone Else (the GM)', p));
+  if (sc.nap){
+    nar(sc.napText);
+    ruleOnce('nap', 'When things get dull, the GM rolls a die. On a 4 or more, John dozes off. Every Voice gets 1 Willpower back, and John wakes up to a fresh fight for control.');
+    const v = await gmRoll('Does John doze off? (4 or more)');
+    if (v >= 4){
+      mark('nap');
+      add('', `<span class="result n">${v}: John naps</span>`);
+      ORDER.forEach(k => S.v[k].wp += 1); render();
+      nar('John\'s head tips over. Zzz. In the quiet, every Voice catches its breath: <strong>+1 Willpower each.</strong> Then he jolts awake.');
+      S.beatsLeft = 1;
+      await controlTest('wake');
+    } else {
+      add('', `<span class="result n">${v}: John stays awake</span>`);
+      nar('John blinks hard and sits up straight. Still awake. Barely.');
+    }
+  }
+  if (sc.gm){
+    const v = await gmRoll(sc.gm.name);
+    const r = sc.gm.rows[v-1];
+    add('tbl', `<b>${v}.</b> ${r.t}`);
+    if (r.hurt){ await controlTest('hurt'); }
+  }
+  let ended = false;
+  while (S.beatsLeft > 0){
+    if (allOut()) return 'asleep';
+    const k = S.active;
+    let act = null;
+    if (k === 'me'){
+      const opts = sc.actions.filter(a => !S.done.includes(a.id)).map(a => {
+        const has = S.v.me.skills.includes(a.skill), mine = a.obs === S.v.me.obs;
+        return {id:a.id, label:a.label, cls: mine ? 'mine' : '', say:a.say, sub:`${has ? SKILLS[a.skill].name + ': need 3' : 'No skill: need 6'}${mine ? ' · ★ your obsession' : ''}`};
+      });
+      opts.push({id:'safe', label:sc.safe.label, sub:'No roll · ends this scene · you keep control', cls:'quiet', say:sc.safe.say});
+      const pick = await choose(opts, `You're driving. What does John do? (${S.beatsLeft} ${S.beatsLeft === 1 ? 'move' : 'moves'} left here)`);
+      act = pick === 'safe' ? null : sc.actions.find(a => a.id === pick);
+    } else {
+      act = aiPick(k, sc);
+      voice(k, esc(act ? act.quip : RIVALS[k].idle));
+    }
+    S.beatsLeft--;
+    if (!act){
+      ruleOnce('safe', 'Not everything needs a roll. If John can\'t really fail at something, he just does it, and control stays where it is.');
+      nar(sc.safe.text); ended = true;
+      if (k !== 'me') await cont();
+      break;
+    }
+    S.done.push(act.id);
+    const lastMove = () => S.beatsLeft === 0 && i === SCENES.length - 1;   // the day is over, so no one needs control
+    const ok = await doRoll(k, act);
+    if (ok){
+      nar(act.ok);
+      const selfDone = scoreObs([act.obs].concat(act.also || []), `${sc.time} ${sc.title}: ${act.label}`);
+      if (allOut()) return 'asleep';
+      if (selfDone && !lastMove()) await controlTest('obs');
+      else if (k !== 'me') await cont();
+    } else {
+      nar(act.fail);
+      if (allOut()) return 'asleep';
+      if (!lastMove()) await controlTest('fail');
+      else if (k !== 'me') await cont();
+    }
+  }
+  if (!ended) nar(sc.outro);
+  if (allOut()) return 'asleep';
+  if (i < SCENES.length - 1) await cont(`On to ${SCENES[i+1].time}: ${SCENES[i+1].title}`);
+  return 'ok';
+}
+
+async function runDay(from){
+  for (let i=from;i<SCENES.length;i++){
+    const r = await playScene(i);
+    if (r === 'asleep') return ending('asleep');
+  }
+  ending('day');
+}
+
+/* ---------- side panel ---------- */
+function wpDots(n){ return `<span class="wp" aria-label="${n} Willpower">${Array.from({length:Math.max(10,n)},(_,i)=>`<i class="${i<n?'on':''}" aria-hidden="true"></i>`).join('')}<em>${n}</em></span>`; }
+function render(final){
+  if (!S || !S.v.me.obs) return;
+  const me = S.v.me, mo = OBS[me.obs];
+  $('#sumName').textContent = S.active ? `At the wheel: ${NAMES[S.active]}` : 'Inside John\'s head';
+  $('#sumMini').textContent = `You ${me.wp} WP · ${pts('me')} pts · ${SCENES[S.scene].time}`;
+  const card = k => {
+    const act = S.active === k ? '<span class="wheel">at the wheel</span>' : '';
+    if (k === 'me') return `<div class="vcard me${S.active==='me'?' active':''}"><div class="vh"><span>You</span>${act}</div><div class="vbody">
+      <div><span class="k">Willpower</span>${wpDots(me.wp)}</div>
+      <div><span class="k">Skills</span>${me.skills.map(s => esc(SKILLS[s].name)).join(', ')}</div>
+      <div><span class="k">Obsession</span>${esc(mo.text)} <strong>Level ${mo.lvl}</strong></div>
+      <div><span class="k">Score</span><strong>${pts('me')}</strong> (${S.score.me.length} × ${mo.lvl})</div></div></div>`;
+    const r = RIVALS[k], show = final;
+    const sk = show ? r.skills.map(s => SKILLS[s].name).join(', ') : S.revealed[k].map(s => SKILLS[s].name).concat(Array(r.skills.length - S.revealed[k].length).fill('?')).join(', ');
+    return `<div class="vcard ${k}${S.active===k?' active':''}"><div class="vh"><span>${r.name}</span>${act}</div><div class="vbody">
+      <div><span class="k">Willpower</span>${wpDots(S.v[k].wp)}</div>
+      <div><span class="k">Skills</span>${esc(sk)}</div>
+      <div><span class="k">Obsession</span>${show ? esc(OBS[r.obs].text) + ` <strong>Level ${OBS[r.obs].lvl}</strong>` : 'secret'}</div>
+      <div><span class="k">Scored</span>${S.score[k].length ? '★'.repeat(S.score[k].length) : 'not yet'}${show ? ` · <strong>${pts(k)} pts</strong>` : ''}</div></div></div>`;
+  };
+  $('#sheetBody').innerHTML = ORDER.map(card).join('') +
+    `<div><div class="sec">John's Tuesday</div><ul class="day">${SCENES.map((s,i) => `<li class="${i===S.scene && !final ? 'now' : (i < S.scene || final) ? 'past' : ''}"><b>${s.time}</b>${esc(s.title)}</li>`).join('')}</ul></div>`;
+}
+const ABOUT = `<p style="margin:.2em 0 .5em">This demo plays one full session of Everyone Is John, solo. The page is the GM (called Everyone Else) and also runs the two rival Voices. Every bid and die roll is real and random.</p>
+  <p style="margin:.5em 0 .2em"><strong>How Gloria and Pip think</strong></p>
+  <ul>
+    <li>Each bids big when the current stop has something it wants: Gloria bids 3, Pip bids 2.</li>
+    <li>Otherwise each bids 1 if it has 6 or more Willpower, or 0 if not.</li>
+    <li>Neither will bid its last 2 Willpower, which it saves for rolling.</li>
+    <li>Each has a 1 in 6 chance to bid 1 extra, just to keep you guessing.</li>
+    <li>In control, each goes after its obsession if it can, and otherwise moves the day along.</li>
+    <li>On a roll, Gloria spends Willpower until she needs a 2 or better. Pip spends until he needs a 3 or better.</li>
+  </ul>
+  <p class="fine">Based on Everyone Is John © 2002 by Michael Sullivan (<a href="${RULES_URL}" target="_blank" rel="noopener">overlycommonname.github.io/john.html</a>), licensed under CC BY 4.0 (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">creativecommons.org/licenses/by/4.0/</a>). Rules restated in our own words. This is not an official Everyone Is John product and is not affiliated with or endorsed by Michael Sullivan. Demo text © 2026 RPG Demo Library.</p>
+  <p style="margin:.6em 0 0"><a class="cta" style="font-size:15px;padding:7px 13px" href="${RULES_URL}" target="_blank" rel="noopener">Read the full free rules</a></p>`;
+$('#aboutBody').innerHTML = ABOUT; $('#aboutBodyM').innerHTML = ABOUT;
+
+/* ---------- start ---------- */
+async function start(){
+  nar('<strong>Everyone Is John</strong> is a party game about one ordinary, very nice man named John, and the several Voices in his head who take turns steering him. Think of it as a committee meeting inside one person. Each Voice has a secret goal, called its <strong>obsession</strong>, a couple of things it is good at, and a pool of <strong>Willpower</strong>. One more player runs the whole world around John.');
+  nar('In this demo you are one Voice. The page runs the world and two rival Voices:');
+  voice('gloria', esc(RIVALS.gloria.blurb));
+  voice('pip', esc(RIVALS.pip.blurb));
+  nar('Their obsessions are secret. So is yours. First, pick what you want John to do today.');
+  const o = await choose(MY_OBS.map(k => ({id:k, label:`${OBS[k].name}: ${OBS[k].text}`, sub:`Level ${OBS[k].lvl} · ${['','easy, lots of chances','harder, worth 2 each time','nearly impossible, worth 3 each time'][OBS[k].lvl]}`, say:`My obsession: ${OBS[k].text}`})), 'Choose your obsession');
+  S.v.me.obs = o;
+  ruleOnce('lvl', 'Each obsession has a level: 1 is easy, 2 is harder, 3 is nearly impossible. Every time it happens, its Voice scores points equal to its level.');
+  ruleOnce('skills', 'Every Voice has two skills: short, loose things it is good at. When a skill fits what John is doing, rolls get much easier.');
+  const pickSkill = async (prompt) => {
+    const id = await choose(MY_SKILLS.filter(s => !S.v.me.skills.includes(s)).map(s => ({id:s, label:SKILLS[s].name, sub:SKILLS[s].desc, say:`${SKILLS[s].name}: ${SKILLS[s].desc}.`})), prompt);
+    S.v.me.skills.push(id);
+  };
+  await pickSkill('Pick your first skill');
+  await pickSkill('Pick your second skill');
+  ruleOnce('three', 'A Voice may take a third skill, but then it starts with 7 Willpower instead of 10.');
+  const t = await choose([{id:'no', label:'Keep two skills and 10 Willpower', cls:'primary', say:'Two skills is plenty.'},{id:'yes', label:'Take a third skill, start with 7 Willpower', say:'Give me a third skill.'}], 'A third skill?');
+  if (t === 'yes'){ mark('three'); await pickSkill('Pick your third skill'); S.v.me.wp = 7; }
+  render();
+  nar('You are set. Willpower is everything: you spend it to win control of John and to push his rolls. When every Voice runs out, John falls asleep and the game is over. Otherwise the game ends when John\'s day does.');
+  await cont('Wake John up');
+  await runDay(0);
+}
+
+/* ---------- ending ---------- */
+async function ending(why){
+  clearSave();
+  const sc = SCENES[S.scene];
+  $('#sceneName').textContent = 'The end of John\'s day';
+  if (why === 'asleep'){
+    mark('sleep');
+    nar(`John's eyelids drop. All three Voices are out of Willpower, and John falls asleep right there, ${esc(sc.spot)}. Someone kind puts a coat over him.`);
+    rule('When every Voice runs out of Willpower, John falls asleep and the game ends.');
+  } else {
+    nar('At 10:30 PM John flops into bed, still wearing his free bowling socks. What a day. The three Voices go quiet, and John smiles in his sleep.');
+    rule('The game also ends when John\'s day is done. Now every Voice reveals its obsession and counts up.');
+  }
+  render(true);
+  const rows = ORDER.map(k => {
+    const o = OBS[obsOf(k)];
+    return {k, o, n:S.score[k].length, p:pts(k)};
+  });
+  const best = Math.max(...rows.map(r => r.p));
+  const winners = rows.filter(r => r.p === best);
+  const meWon = winners.some(r => r.k === 'me');
+  const verdict = best === 0 ? 'Nobody scored. John had a calm, ordinary Tuesday, which honestly he deserved.' :
+    winners.length > 1 ? `A tie at ${best}: ${winners.map(r => NAMES[r.k]).join(' and ')} share the win.` :
+    meWon ? `You win with ${best} points!` : `${NAMES[winners[0].k]} wins with ${best} points.`;
+  add('endcard', `
+    <h3>${meWon && best > 0 ? 'You win!' : 'Final scores'}</h3>
+    <p style="margin:0">${verdict} In the full game, the winning Voice usually runs the world as GM next time.</p>
+    <table class="scoretbl">
+      <thead><tr><th scope="col">Voice and obsession</th><th scope="col">Done</th><th scope="col" style="text-align:right">Points</th></tr></thead>
+      <tbody>${rows.map(r => `<tr><td><span class="vn ${r.k}">${NAMES[r.k]}</span>: ${esc(r.o.text)} <strong>Level ${r.o.lvl}</strong>
+        <small>Skills: ${skillsOf(r.k).map(s => esc(SKILLS[s].name)).join(', ')} · Willpower left: ${S.v[r.k].wp}</small>
+        ${S.score[r.k].length ? `<small>${S.score[r.k].map(esc).join('<br>')}</small>` : ''}</td>
+        <td>${r.n} × ${r.o.lvl}</td><td class="pts">${r.p}</td></tr>`).join('')}</tbody>
+    </table>
+    <div class="freebox">
+      <strong>The whole game is free.</strong>
+      <p>Everyone Is John fits on one page. Grab two or more friends and one die, pick someone to run the world, and give John the worst best day of his life.</p>
+      <a class="cta" href="${RULES_URL}" target="_blank" rel="noopener">Read the full free rules</a>
+    </div>
+    <ul class="learned">${USED_LIST.map(([k,t]) => `<li class="${S.used.includes(k)?'':'no'}">${t}</li>`).join('')}</ul>
+    <p class="fine">Based on Everyone Is John © 2002 by Michael Sullivan, licensed under CC BY 4.0. This is not an official Everyone Is John product. Demo text © 2026 RPG Demo Library.</p>`);
+  const c = await choose([{id:'again', label:'Play John\'s day again', sub:'New obsession, new skills, new dice', cls:'primary', say:false}]);
+  if (c === 'again'){ clearSave(); location.reload(); }
+}
+const USED_LIST = [['bid','Bidding for control'],['tie','A tie roll-off'],['skill','A roll with a skill (need 3)'],['noskill','A roll without a skill (need 6)'],['spend','Spending Willpower on a roll'],['auto','An automatic success'],['failtest','A failure passing control'],['obstest','A finished obsession passing control'],['hurt','John getting hurt'],['nap','A nap (+1 Willpower each)'],['offturn','Scoring while another Voice drives'],['three','A third skill for 7 Willpower'],['sleep','John falling asleep early']];
+
+/* ---------- boot ---------- */
+async function boot(){
+  if (matchMedia('(max-width: 880px)').matches) $('#sheet').open = false;
+  const sv = loadSave();
+  if (sv){
+    S = fresh();
+    nar(`Welcome back. John's day is paused at <strong>${SCENES[sv.S.scene].time}, ${esc(SCENES[sv.S.scene].title)}</strong>.`);
+    const c = await choose([{id:'resume', label:'Pick up where you left off', sub:'From the start of that scene', cls:'primary', say:false},{id:'new', label:'Start a brand new day', sub:'Clears your saved game', say:false}]);
+    if (c === 'resume'){
+      S = Object.assign(fresh(), sv.S);
+      logEl.innerHTML = sv.log;
+      render();
+      return runDay(S.scene);
+    }
+    clearSave(); logEl.innerHTML = '';
+  }
+  S = fresh();
+  start();
+}
+boot();
+})();
+</script>
+</body>
+</html>

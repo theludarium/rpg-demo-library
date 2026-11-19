@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Under the Couch: Free One-Page RPG Demo</title>
+<meta name="description" content="Play Under the Couch, a free one-page RPG by The Ludarium, solo in your browser. Make a tiny pawn, roll real dice, and get home before the lid closes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap">
+<script src="../../store.js"></script>
+<style>
+/* Look: game night, seen from under the couch. Walnut dark, a warm lamp glow from up high, a parchment story page, Felt Green and Lamplight from The Ludarium. */
+:root{
+  --walnut:#2B1E16; --walnut-2:#382820; --walnut-3:#46332A; --line-d:#5A4436;
+  --parch:#F6EFE3; --parch-2:#EDE3D1; --parch-3:#E3D6BF;
+  --felt:#2F5D50; --felt-l:#4F8A78; --felt-pale:#DDEAE3;
+  --lamp:#E0A23B; --lamp-deep:#8A5A12; --lamp-pale:#F7E6C4;
+  --stone:#B9AD9C; --stone-deep:#6B5F50;
+  --ink:#2B1E16; --bad:#A6452E;
+  --f-display:"Fraunces", Georgia, serif; --f-body:"Nunito", "Trebuchet MS", sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{overflow-x:hidden}
+body{margin:0;background-color:var(--walnut);color:var(--parch);font-family:var(--f-body);font-size:17.5px;line-height:1.55;overflow-x:hidden;
+  background-image:radial-gradient(ellipse 70% 45% at 88% -8%, rgba(224,162,59,.30), transparent 70%),radial-gradient(ellipse 50% 30% at 10% 110%, rgba(47,93,80,.28), transparent 70%),repeating-linear-gradient(90deg, rgba(0,0,0,0) 0 148px, rgba(0,0,0,.16) 148px 150px);background-attachment:fixed}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+.couch{height:30px;background:linear-gradient(#1B120D,#24180F);position:relative}
+.couch::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:12px;background:repeating-linear-gradient(90deg,#3A2A1F 0 3px,transparent 3px 9px);-webkit-mask:linear-gradient(#000,transparent);mask:linear-gradient(#000,transparent)}
+.proto{font-size:13px;font-weight:700;color:var(--stone);padding-block:14px 0;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));display:flex;gap:6px 16px;flex-wrap:wrap;justify-content:space-between;max-width:1160px;margin:0 auto}
+.proto b{color:var(--lamp)}
+.wrap{max-width:1160px;margin:0 auto;padding-block:18px 60px;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+.masthead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;margin-bottom:20px}
+.eyebrow{font-weight:800;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--lamp);margin:0 0 6px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(40px,7vw,68px);line-height:.95;margin:0;color:var(--parch);letter-spacing:-.01em}
+.tag{color:#E4D9C6;margin:10px 0 0;max-width:52ch;font-size:18px}
+.chip{font-weight:800;font-size:13px;border:1.5px solid var(--lamp);color:var(--lamp);padding:6px 14px;border-radius:999px;white-space:nowrap}
+
+.table{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+.story{background:var(--parch);color:var(--ink);border-radius:18px;min-width:0;box-shadow:0 22px 50px rgba(0,0,0,.5), 0 0 0 1px rgba(224,162,59,.12);overflow:clip}
+.story-head{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:12px 20px;border-bottom:2px solid var(--parch-3);background:var(--parch-2)}
+.story-head .scene{font-family:var(--f-display);font-weight:700;font-size:20px;line-height:1.1;color:var(--felt)}
+.toggles{display:flex;gap:4px 14px;flex-wrap:wrap}
+.toggle{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--stone-deep)}
+.toggle input{accent-color:var(--felt);width:16px;height:16px}
+#log{padding:20px 22px 10px;display:flex;flex-direction:column;gap:13px}
+.line{max-width:64ch}
+.who{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--lamp-deep);display:block;margin-bottom:1px;font-style:normal}
+.npc{border-left:4px solid var(--lamp);padding-left:13px;font-style:italic}
+.you{align-self:flex-end;background:var(--felt);color:var(--parch);padding:8px 14px;border-radius:16px 16px 4px 16px;max-width:min(52ch,90%);font-weight:700}
+.rule{font-size:15px;line-height:1.5;background:var(--felt-pale);border-left:4px solid var(--felt);padding:8px 12px;max-width:64ch;border-radius:0 10px 10px 0}
+.rule::before{content:"RULE  ";font-weight:800;letter-spacing:.1em;color:var(--felt)}
+body.norules .rule{display:none}
+.scenebreak{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.1;border-top:2px dashed var(--stone);padding-top:14px;margin-top:10px;color:var(--walnut)}
+.scenebreak small{display:flex;align-items:center;gap:8px;font-family:var(--f-body);font-weight:800;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--lamp-deep);margin-bottom:2px}
+.scenebreak small i{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:var(--felt);color:var(--parch);font-style:normal;letter-spacing:0}
+.tbl{max-width:64ch;font-size:14.5px;font-weight:700;background:#FFFBF3;border:1.5px dashed var(--stone);border-radius:10px;padding:6px 12px}
+.tbl b{color:var(--lamp-deep)}
+.note{font-size:14.5px;color:var(--stone-deep);max-width:64ch}
+
+.rollrow{display:flex;flex-direction:column;gap:8px;border:2px solid var(--walnut);border-radius:14px;padding:11px 13px;max-width:64ch;background:#FFFBF3}
+.rollrow.gm{border-style:dashed;border-color:var(--stone-deep);background:transparent}
+.rollrow .lbl{font-size:14.5px;font-weight:700}
+.dice{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.d6{width:44px;height:44px;border:2px solid var(--walnut);border-radius:10px;background:#fff;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:6px;position:relative}
+.d6 i{width:7px;height:7px;border-radius:50%;background:var(--walnut);place-self:center;visibility:hidden}
+.d6.extra{border-style:dotted}
+.d6.lucky{border-color:var(--lamp);background:var(--lamp-pale);box-shadow:0 0 0 3px rgba(224,162,59,.35)}
+.d6.pair{border-color:var(--felt);background:var(--felt-pale)}
+.d6.lucky.pair{background:linear-gradient(135deg,var(--lamp-pale) 50%,var(--felt-pale) 50%)}
+.d6.miss{opacity:.5}
+.dlabel{font-size:11px;font-weight:700;color:var(--stone-deep);display:block;text-align:center;margin-top:3px}
+.dwrap{display:flex;flex-direction:column;align-items:center}
+.ghost{opacity:.4;border-style:dashed}
+.tumble{animation:tumble .12s linear infinite}
+@keyframes tumble{50%{transform:rotate(12deg) translateY(-3px)}}
+.score{font-weight:700;font-size:15px}
+.result{font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:3px 11px;border-radius:999px;color:#fff;align-self:flex-start}
+.result.ok{background:var(--felt)} .result.bad{background:var(--bad)} .result.n{background:var(--walnut)}
+.result.style{background:linear-gradient(90deg,var(--lamp-deep),var(--felt));}
+.result.erase{background:var(--lamp);color:var(--walnut)}
+
+#choices{position:sticky;bottom:0;background:var(--parch-2);border-top:2px solid var(--parch-3);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:10px}
+#choices:empty{display:none}
+.opt{flex:1 1 220px;min-width:0;text-align:left;border:2px solid var(--walnut);background:#FFFBF3;padding:10px 13px;cursor:pointer;border-radius:14px;box-shadow:0 3px 0 var(--walnut)}
+.opt:hover{background:#fff}
+.opt:active{transform:translateY(3px);box-shadow:none}
+.opt b{display:block;font-weight:800;line-height:1.25}
+.opt span{display:block;font-size:13.5px;font-weight:600;color:var(--stone-deep);margin-top:2px}
+.opt.great{border-left:9px solid var(--felt)}
+.opt.primary{background:var(--felt);color:var(--parch);border-color:var(--walnut)}
+.opt.primary span{color:#D3E4DC}
+.opt.help{background:var(--felt-pale)}
+.opt.swatch b::before{content:"";display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--sw);border:1.5px solid var(--walnut);margin-right:8px;vertical-align:-2px}
+.opt.small{flex:1 1 90px;text-align:center}
+.opt:disabled{opacity:.45;cursor:not-allowed}
+.opt.roll{flex:1 1 100%;display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:center;padding:12px 16px;background:var(--lamp);color:var(--walnut)}
+.opt.roll span{color:#4A3420}
+.opt.roll::before{content:"";grid-row:span 2;width:28px;height:28px;border-radius:8px;background:#fff;border:2px solid var(--walnut);background-image:radial-gradient(circle at 30% 30%,var(--walnut) 3px,transparent 3.5px),radial-gradient(circle at 70% 70%,var(--walnut) 3px,transparent 3.5px),radial-gradient(circle at 50% 50%,var(--walnut) 3px,transparent 3.5px);transition:transform .2s}
+.opt.roll:hover::before{transform:rotate(90deg)}
+.opt.roll b{font-size:19px}
+.nameform{flex:1 1 100%;display:flex;flex-direction:column;gap:8px}
+.nameform label{font-weight:800;font-size:14px}
+.nf-row{display:flex;gap:10px;flex-wrap:wrap}
+.nf-row input{flex:1 1 180px;min-width:0;border:2px solid var(--walnut);border-radius:12px;padding:10px 12px;background:#fff;color:var(--ink);font-size:18px}
+.nf-row .opt{flex:0 1 auto}
+.suggest{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;font-weight:700;color:var(--stone-deep)}
+.suggest button{border:1.5px solid var(--stone-deep);background:transparent;border-radius:999px;padding:3px 11px;cursor:pointer;font-size:14px;font-weight:700;color:var(--ink)}
+.suggest button:hover{background:#fff}
+
+/* sheet */
+.sheet{position:sticky;top:calc(12px + env(safe-area-inset-top,0px));background:var(--walnut-2);border:1.5px solid var(--line-d);border-radius:18px;min-width:0;color:var(--parch);overflow:clip}
+.sheet summary{list-style:none;cursor:pointer;padding:11px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 10px;align-items:center;border-bottom:1px solid var(--line-d)}
+.sheet summary::-webkit-details-marker{display:none}
+.sheet .nm{font-family:var(--f-display);font-weight:700;font-size:20px;color:var(--parch);display:flex;align-items:center;gap:8px}
+.sheet .nm svg{width:18px;height:25px;flex:none}
+.sheet .mini{font-size:12.5px;font-weight:800;color:var(--lamp);white-space:nowrap}
+.sheet-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:14px}
+.sec{font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--stone);border-bottom:1px solid var(--line-d);padding-bottom:3px;margin-bottom:7px;display:flex;justify-content:space-between;gap:8px}
+.card{background:var(--parch);color:var(--ink);border-radius:12px;padding:10px 12px 12px;background-image:repeating-linear-gradient(transparent 0 23px, rgba(47,93,80,.16) 23px 24px);display:grid;grid-template-columns:44px 1fr;gap:4px 12px;align-items:start}
+.card svg{grid-row:span 4;width:40px;height:56px}
+.card .pn{font-family:var(--f-display);font-weight:800;font-size:20px;line-height:1.15}
+.card .ln{font-size:14px;line-height:1.5}
+.card .ln b{font-weight:800;color:var(--felt)}
+.lid-wrap{display:flex;gap:12px;align-items:center}
+.lidsvg{width:92px;height:62px;flex:none}
+.lidsvg .lid{transform-box:view-box;transform-origin:8px 30px;transition:transform .7s cubic-bezier(.3,1.4,.5,1)}
+.boxes{display:grid;grid-template-columns:repeat(5,22px);gap:5px}
+.boxes i{width:22px;height:22px;border:1.5px solid var(--stone);border-radius:5px}
+.boxes i.on{background:var(--lamp);border-color:var(--lamp);background-image:linear-gradient(45deg,transparent 45%,var(--walnut) 45% 55%,transparent 55%)}
+.lidnote{font-size:13px;color:#D6CCBA;margin:6px 0 0}
+.route{list-style:none;margin:0;padding:0;font-size:14.5px;display:flex;flex-direction:column;gap:4px}
+.route li{display:flex;gap:8px;align-items:baseline;color:#9C8F7D}
+.route li i{font-style:normal;font-weight:800;font-size:11px;min-width:20px;height:20px;border-radius:999px;border:1.5px solid currentColor;display:inline-grid;place-items:center}
+.route li.now{color:var(--lamp)} .route li.done{color:var(--parch)}
+.route li.done i{background:var(--felt-l);border-color:var(--felt-l);color:var(--parch)}
+.friends{list-style:none;margin:0;padding:0;font-size:14.5px;display:flex;flex-direction:column;gap:6px}
+.friends li{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.friends .fn{display:flex;align-items:center;gap:7px;min-width:0}
+.friends .fn svg{width:13px;height:18px;flex:none}
+.friends small{display:block;font-size:12px;color:var(--stone);line-height:1.3}
+.helps{display:flex;gap:3px;flex:none}
+.helps i{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--felt-l)}
+.helps i.on{background:var(--felt-l)}
+.lost{list-style:none;margin:0;padding:0;font-size:14.5px;display:flex;flex-direction:column;gap:3px}
+.lost li::before{content:"\2665  ";color:var(--lamp)}
+.lost li.muted::before{content:none}
+.muted{font-size:14px;color:#A89B88;font-style:italic;margin:0}
+.links{display:flex;flex-direction:column;gap:8px}
+.links a{display:block;text-decoration:none;border-radius:12px;padding:9px 12px;font-weight:800;font-size:14.5px;line-height:1.3}
+.links a small{display:block;font-weight:600;font-size:12.5px;margin-top:2px}
+.links a.cta{background:var(--lamp);color:var(--walnut)}
+.links a.cta small{color:#4A3420}
+.links a.alt{border:1.5px solid var(--felt-l);color:var(--parch)}
+.links a.alt small{color:#C9BEAC}
+.links a:hover{filter:brightness(1.06)}
+
+.endcard{border:2px solid var(--walnut);background:#FFFBF3;padding:18px 20px;display:flex;flex-direction:column;gap:12px;max-width:64ch;border-radius:18px}
+.endcard h3{font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1.05;margin:0;color:var(--felt)}
+.endcard p{margin:0}
+.endlinks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.endlinks a{display:block;text-decoration:none;border-radius:14px;padding:12px 14px;font-weight:800;line-height:1.3}
+.endlinks a small{display:block;font-weight:600;font-size:13.5px;margin-top:3px}
+.endlinks a.cta{background:var(--lamp);color:var(--walnut)}
+.endlinks a.cta small{color:#4A3420}
+.endlinks a.alt{background:var(--felt);color:var(--parch)}
+.endlinks a.alt small{color:#D3E4DC}
+.learned{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 14px;font-size:15px}
+.learned li::before{content:"\2713  ";font-weight:800;color:var(--felt)}
+.learned li.no{color:var(--stone-deep)} .learned li.no::before{content:"\25CB  ";color:var(--stone-deep)}
+.fine{font-size:13px;color:var(--stone-deep);line-height:1.5}
+.foot{font-size:13.5px;margin-top:24px;max-width:90ch;line-height:1.6;color:var(--stone)}
+.foot a{color:var(--parch)}
+
+@media (max-width: 880px){
+  .table{grid-template-columns:minmax(0,1fr)}
+  .sheet{order:-1;top:env(safe-area-inset-top,0px);z-index:5}
+  .sheet-body{max-height:60vh;overflow:auto}
+  #log{padding:16px 15px 8px}
+  .story-head{padding:10px 15px}
+}
+@media (max-width: 400px){
+  .opt{flex-basis:100%}
+  .opt.small{flex-basis:28%}
+  .d6{width:40px;height:40px}
+}
+@media (prefers-reduced-motion: reduce){ .tumble{animation:none} .lidsvg .lid{transition:none} .opt.roll::before{transition:none} }
+</style>
+</head>
+<body>
+<div class="couch" aria-hidden="true"></div>
+<div class="proto"><span><a href="../../" style="color:inherit">← All demos</a> · <b>FREE GAME</b> · the whole adventure, solo</span><span>An original one-page RPG by The Ludarium</span></div>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">A Game Night One-Pager · ages 8 and up</p>
+      <h1>Under the Couch</h1>
+      <p class="tag">You are a tiny wooden pawn. You bounced off the table, into the dark under the couch, and the game box is closing soon.</p>
+    </div>
+    <span class="chip">Free · solo · about 15 minutes</span>
+  </header>
+  <div class="table">
+    <main class="story">
+      <div class="story-head">
+        <span class="scene" id="sceneName">Before you begin</span>
+        <span class="toggles">
+          <label class="toggle"><input type="checkbox" id="rulesToggle" checked> Show rules</label>
+          <label class="toggle"><input type="checkbox" id="autoToggle"> Auto-roll</label>
+        </span>
+      </div>
+      <div id="log" aria-live="polite"></div>
+      <div id="choices"></div>
+    </main>
+    <details class="sheet" id="sheet" open>
+      <summary><span class="nm" id="sumName">Your pawn</span><span class="mini" id="sumMini">not made yet</span></summary>
+      <div class="sheet-body">
+        <div id="pawnCard"><p class="muted">Your pawn's index card appears here: color, name, lucky number, what you are great at, and your silly habit.</p></div>
+        <div>
+          <div class="sec"><span>Lid Track</span><span id="lidCount">0/10</span></div>
+          <div class="lid-wrap">
+            <svg class="lidsvg" viewBox="0 0 120 80" aria-hidden="true">
+              <rect x="12" y="34" width="96" height="40" rx="4" fill="#2F5D50" stroke="#F6EFE3" stroke-width="1.5"/>
+              <rect x="22" y="44" width="76" height="20" rx="3" fill="none" stroke="#B9AD9C" stroke-width="1" stroke-dasharray="3 3"/>
+              <g class="lid" id="lidG"><rect x="8" y="26" width="104" height="10" rx="3" fill="#E0A23B" stroke="#2B1E16" stroke-width="1"/></g>
+            </svg>
+            <div class="boxes" id="boxes" role="img" aria-label="Lid Track: 0 of 10 boxes marked"></div>
+          </div>
+          <p class="lidnote">Mark a box when a roll fails and when you leave a place. Ten marks and the lid closes. Bring a lost thing home to erase one.</p>
+        </div>
+        <div>
+          <div class="sec"><span>The way back</span><span>3 places, then the climb</span></div>
+          <ul class="route" id="route"></ul>
+        </div>
+        <div>
+          <div class="sec"><span>Friends</span><span>helps left</span></div>
+          <ul class="friends" id="friends"><li class="muted">Two pawn friends fall with you.</li></ul>
+        </div>
+        <div>
+          <div class="sec"><span>Coming home with you</span><span id="lostCount">0</span></div>
+          <ul class="lost" id="lost"><li class="muted" style="list-style:none">Lost things you rescue ride along.</li></ul>
+        </div>
+        <div class="links">
+          <a class="cta" href="https://theludarium.com/articles/one-page-rpgs/">Get the printable one-page rules free<small>Play it at your table with 2 to 5 players</small></a>
+          <a class="alt" href="https://theludarium.com/store/">Ten more games like this<small>Game Night One-Pagers, in the store</small></a>
+        </div>
+      </div>
+    </details>
+  </div>
+  <p class="foot">Under the Couch is a Game Night One-Pager by The Ludarium. © 2026 The Ludarium. Get the <a href="https://theludarium.com/articles/one-page-rpgs/">printable one-page rules</a> free, or find <a href="https://theludarium.com/store/">more games in the store</a>. Your progress is saved in this browser only.</p>
+</div>
+
+<script>
+(() => {
+const SAVE_KEY = 'utc-save';
+let autoRoll = false;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s);
+const logEl = $('#log'), choicesEl = $('#choices');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- seeded dice, so a saved game replays exactly ---------- */
+function mulberry(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let seed = 0, rnd = Math.random;
+const d6 = () => 1 + Math.floor(rnd() * 6);          // real results
+const look = () => 1 + Math.floor(Math.random() * 6); // tumbling faces only
+let answers = [], replay = [];
+const replaying = () => replay.length > 0;
+function save(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify({v:1, seed, answers})); } catch(e){} }
+function clearSave(){ try { localStorage.removeItem(SAVE_KEY); } catch(e){} }
+function record(a){ answers.push(a); save(); }
+const sleep = ms => new Promise(r => setTimeout(r, (reduced || replaying()) ? 0 : ms));
+
+try { if (localStorage.getItem('utc-rules') === 'off') { $('#rulesToggle').checked = false; document.body.classList.add('norules'); } } catch(e){}
+try { if (localStorage.getItem('utc-auto') === 'on') { $('#autoToggle').checked = true; autoRoll = true; } } catch(e){}
+$('#rulesToggle').addEventListener('change', e => { document.body.classList.toggle('norules', !e.target.checked); try { localStorage.setItem('utc-rules', e.target.checked ? 'on' : 'off'); } catch(err){} });
+$('#autoToggle').addEventListener('change', e => { autoRoll = e.target.checked; try { localStorage.setItem('utc-auto', autoRoll ? 'on' : 'off'); } catch(err){} });
+
+/* ---------- the pawn ---------- */
+const GREAT = {hop:'Hopping and climbing', friends:'Making friends', brave:'Being brave in the dark', plans:'Clever plans', roll:'Rolling (you are a little round)', find:'Finding lost things'};
+const GREAT_ORDER = ['hop','friends','brave','plans','roll','find'];
+const COLORS = [
+  {id:'red', name:'Red', hex:'#C0412F'}, {id:'blue', name:'Blue', hex:'#2F62A3'}, {id:'green', name:'Green', hex:'#3E8A4F'},
+  {id:'yellow', name:'Yellow', hex:'#E5B83A'}, {id:'purple', name:'Purple', hex:'#7B4E9E'}, {id:'orange', name:'Orange', hex:'#DD7A2B'}];
+const HABITS = [
+  {id:'hum', label:'Humming', line:'hums a little tune'},
+  {id:'count', label:'Counting everything', line:'counts everything out loud'},
+  {id:'boing', label:'Saying "boing" on every hop', line:'says "boing" on every single hop'},
+  {id:'bow', label:'Bowing to everyone', line:'bows to everyone, even crumbs'},
+  {id:'names', label:'Naming every crumb', line:'gives every crumb a name'},
+  {id:'jokes', label:'Bad jokes when nervous', line:'tells terrible jokes when nervous'}];
+const NAME_IDEAS = ['Biscuit','Clover','Pebble','Juniper','Waffles','Sprocket'];
+const FRIEND_BASE = [
+  {key:'pip', name:'Pip', greats:['hop','roll'], colors:['yellow','orange','green'], habit:'hums when nervous',
+    wobble:[`Pip slips, says "whoopsie," and tries again a new way, humming extra loud.`, `Pip lands on one corner and spins like a top. "I meant to do that," says Pip.`, `Pip wobbles, tips, and bonks into a crumb. "Ow. Okay. Again!"`]},
+  {key:'tuck', name:'Tuck', greats:['plans','find'], colors:['blue','purple','red'], habit:'counts everything',
+    wobble:[`Tuck wobbles and falls flat. "That is one fall," Tuck counts. "Let us not make it two."`, `Tuck stops halfway to count the dust bunnies and forgets where Tuck was going.`, `Tuck tips over backward. "Three, two, one, up," says Tuck, and tries again a new way.`]}];
+const HELPHOW = {hop:'cups their hands and gives you a boost', friends:'stands beside you and smiles their biggest smile', brave:'holds on to you in the dark', plans:'draws the plan in the dust with a crumb', roll:'gives you a running push', find:'points with you: "There! No, there!"'};
+
+/* ---------- the places (d6) ---------- */
+const PLACES = [
+  {row:'Dust Bunny Village', name:'Dust Bunny Village',
+    arrive:`You tumble into a village of dust bunnies. To you they are as big as haystacks, soft and grey, and they drift a little whenever anyone breathes. Someone has lined them up in a neat row, like houses on a street. A bottle cap sits in the middle like the town well. A lost hair tie loops around everything, like a fence.`,
+    look:`Up above, very far away, a grown-up laughs. Game night is still going. For now.`,
+    thing:'the hair tie',
+    bridge:`You stretch the hair tie from one side to the other, tight as a tightrope, and inch along it with your arms out. Well. Pawns do not have arms. You inch along it very carefully.`,
+    shelter:`Everyone squeezes under the bottle cap, which is heavy and safe, like a tiny tin house.`,
+    lever:`You hook the hair tie around your friend and everyone pulls. It stretches, and stretches, and SPROING!`,
+    leave:`You wave goodbye to the dust bunnies. One of them sneezes, which is a strange thing for dust to do.`},
+  {row:'The Popcorn Forest', name:'The Popcorn Forest',
+    arrive:`The air smells like butter. Popcorn rises all around you like fluffy white trees, some as big as a house. Old kernels that never popped lie about like brown boulders, too hard to chew even for a giant. A pretzel stick has fallen across the path like a log, its salt sparkling like snow.`,
+    look:`Somewhere up on the table, a bowl gets set down. Clink. More popcorn might fall any second.`,
+    thing:'the pretzel stick',
+    bridge:`You push the pretzel stick out across, salty end first, and scoot along it on your belly. When you bump your chin, it tastes a little salty.`,
+    shelter:`Everyone wedges in under the pretzel log, between two kernel boulders, where nothing can reach.`,
+    lever:`You jam the pretzel stick in beside your friend and lean on the end like a seesaw. Crack! Pop! Out they come.`,
+    leave:`You leave the Popcorn Forest with butter on your base. Pip says it is the best place you will ever visit. Pip says that about everywhere.`},
+  {row:'The Sock Cave', name:'The Sock Cave',
+    arrive:`A striped sock lies on the floor, curled up like a sleeping caterpillar. Its open end is a cave mouth, dark and warm. Inside, the walls are soft and fuzzy, and the stripes go red, white, red, white, all the way back into the dark. It smells a little like feet. Tuck says it smells a LOT like feet.`,
+    look:`Your footsteps make no sound at all in here. It is the quietest place you have ever been.`,
+    thing:'a loose sock thread',
+    bridge:`You pull a loose thread from the sock, long as a rope, tie it to the heel and toss the other end across. You cross hand over hand. Well, base over base.`,
+    shelter:`Everyone scurries deep into the toe of the sock, where it is dark and warm and very, very quiet.`,
+    lever:`You loop the sock thread around your friend, and everyone tugs together. Heave! Heave! Pop!`,
+    leave:`You crawl out of the Sock Cave, blinking. You are a little fuzzy now. It suits you.`},
+  {row:'Lost Coin Canyon', name:'Lost Coin Canyon',
+    arrive:`Two floorboards have pulled apart here, and the crack between them is deep and dark, like a canyon. Along the edge, lost coins stand in the dust: quarters as big as wagon wheels, dimes like silver plates, and one nickel leaning on the wall as if it is very tired.`,
+    look:`Everything echoes. You say "hello," and the canyon says "hello, hello, hello" back.`,
+    thing:'a quarter',
+    bridge:`You tip a quarter onto its side so it falls across with a CLANG. Now there is a shiny silver bridge, and it only wobbles a little.`,
+    shelter:`Everyone huddles behind a quarter standing on its edge, like a big round shield.`,
+    lever:`You roll a dime in beside your friend and pry with it like a crowbar. Pop!`,
+    leave:`You leave Lost Coin Canyon. The canyon says goodbye three times.`},
+  {row:'The Crayon Bridge', name:'The Crayon Bridge',
+    arrive:`A heating vent cuts across the floor, a metal grate with long dark slots and warm air puffing up through it. Someone dropped a blue crayon across it, and now it is the only bridge for miles. Broken crayon bits lie all around: a red stub, a green nub, a yellow chunk that somebody nibbled.`,
+    look:`Everything smells like the first day of school.`,
+    thing:'a broken crayon',
+    bridge:`You roll the yellow crayon chunk up beside the blue crayon, so the bridge is twice as wide. You walk across like a king.`,
+    shelter:`Everyone crouches flat in the shadow of the big blue crayon. For a pawn, flat is not very flat, but it works.`,
+    lever:`You wedge the red crayon stub in beside your friend and push. It leaves a red streak on everyone, but it works.`,
+    leave:`You leave the Crayon Bridge with a blue stripe on your base. It looks good on you.`},
+  {row:'The Great Rug Desert', name:'The Great Rug Desert',
+    arrive:`The rug goes on forever. Its pattern rises and falls like sand dunes: red, gold, brown, red. The fringe along the edge stands up like a row of palm trees. Cracker crumbs lie about like boulders, and far away, a cereal ring sits on the horizon like a lost doughnut.`,
+    look:`It is very quiet. A desert is like that.`,
+    thing:'a rug tassel',
+    bridge:`You pull a long tassel loose from the fringe and swing on it like a jungle vine, right over the top. Wheee!`,
+    shelter:`Everyone burrows down into the deep rug fuzz, between two crumbs, and holds very, very still.`,
+    lever:`You tie a rug tassel around your friend, loop it over a crumb boulder, and pull like a crane. Up they come!`,
+    leave:`You trek out of the Great Rug Desert. Tuck counts every step. There were four hundred and twelve.`}];
+
+/* ---------- the problems (d6) ---------- */
+const PROBLEMS = [
+  {row:'A gap too wide to hop',
+    intro:(P) => `The way just stops. Ahead is a gap, wide as a river to someone as tall as a thumb. The other side is right there. You can see it. You just cannot hop that far. Not on a normal day.`,
+    approaches:(P) => [
+      {id:'hop', tag:'hop', label:'Take a running start and hop', say:'Stand back, everyone. I am going to HOP.',
+        ok:`You run, you hop, you fly, and you land on the far side with a proud little click. Pip claps.`,
+        fail:`You run, you hop, you land right on the edge. Wobble, wobble, and you tip back to where you started. Bonk.`},
+      {id:'plan', tag:'plans', label:`Make a bridge from ${P.thing}`, say:'Wait. I have a plan.',
+        ok:P.bridge + ` You made it across.`,
+        fail:`Your bridge looks perfect for one whole second. Then it slides, slowly, down into the gap. Hmm.`},
+      {id:'roll', tag:'roll', label:'Roll down the slope and launch', say:'I am a little round. Watch this.',
+        ok:`You tip over, roll down the slope, hit a bump, and sail through the air, spinning. You land standing up. Nobody can believe it, including you.`,
+        fail:`You roll, you bump, and you roll right past the jumping spot and into a dust pile. Pfft.`}]},
+  {row:'Something sticky, like spilled juice',
+    intro:(P) => `Something shiny covers the floor ahead: a puddle of spilled grape juice, gone dark and sticky. It smells wonderful. When Tuck pokes it with a crumb, the crumb stays stuck forever.`,
+    approaches:(P) => [
+      {id:'hop', tag:'hop', label:'Hop across on the dry spots', say:'I only step on the dry bits. Like a game.',
+        ok:`Hop. Hop. Hop-hop. You land only on the dry spots and never touch the goo once.`,
+        fail:`Hop, hop, SPLAT. Your base sticks, and you wiggle free with a sound like a boot in mud. Shlorp.`},
+      {id:'plan', tag:'plans', label:`Cross on ${P.thing}`, say:`Let's use ${P.thing}. Trust me.`,
+        ok:P.bridge + ` Not one sticky drop on you.`,
+        fail:`Halfway over, your plan sags into the juice and sticks fast. You scramble back, sticky all the way up.`},
+      {id:'roll', tag:'roll', label:'Roll across too fast to stick', say:'If I go fast enough, it cannot catch me.',
+        ok:`You roll as fast as you can, and you are across before the juice even notices. Only one tiny sticky spot on your side.`,
+        fail:`You roll in fast and stop very suddenly, glued in the middle like a fly on paper. Your friends tug you back out. Thwuck.`}]},
+  {row:`The dog's nose comes sniffing`,
+    intro:(P) => `THUMP. THUMP. The floor shakes. A huge black nose pushes under the couch, wet and shiny and as big as a car. SNIFFFF. The wind of it ruffles everything. The dog has smelled something interesting, and it might be you.`,
+    approaches:(P) => [
+      {id:'brave', tag:'brave', label:'Hold perfectly still and be brave', say:'Nobody move. Be brave. Be a statue.',
+        ok:`You stand still as a statue. The nose snuffles right up to you, so close you can see yourself in it. Then it sneezes and backs away. That was very brave.`,
+        fail:`You try to stand still, but you start to wobble, and the nose notices. Boop. You go tumbling end over end into the dust.`},
+      {id:'hide', tag:'plans', label:'Hide everyone, quick', say:'Everybody hide! Follow me!',
+        ok:P.shelter + ` The nose sniffs right past you.`,
+        fail:`Everyone hides, but Tuck's base sticks out. Sniff. Lick. Everybody gets a little wet before the nose loses interest.`},
+      {id:'hello', tag:'friends', label:'Say hello to the dog', say:'"Hello, good dog! We are friends!"',
+        ok:`You pat the giant nose. Up above, a tail thumps the floor, whump whump, and the nose goes away happy. You have a friend the size of a house.`,
+        fail:`The dog likes you so much it tries to lick you. A tongue like a pink carpet sweeps you backward. Slurp.`}]},
+  {row:'The vacuum rumbles somewhere far away',
+    intro:(P) => `Far away, something starts to ROAR. The floor buzzes under your base. A wind begins to pull, gently at first, toward the sound. Dust bunnies roll past like tumbleweeds. Somebody is vacuuming in the next room.`,
+    approaches:(P) => [
+      {id:'find', tag:'find', label:'Look for a safe place to hide', say:'Quick, find somewhere safe!',
+        ok:`You spot it first. ` + P.shelter + ` The roar passes by, and the wind lets go.`,
+        fail:`You find a perfect hiding place. So does a big dust bunny, which sits on you. By the time you wiggle out, you are grey all over.`},
+      {id:'anchor', tag:'plans', label:`Hold hands and grab ${P.thing}`, say:'Everybody hold on to each other, and hold on tight!',
+        ok:`Everyone holds on to each other and grabs ${P.thing}. The wind tugs and tugs. You hang on, flapping like a flag, until it gives up.`,
+        fail:`Everyone grabs hold, but the wind pulls you loose. You slide, you skid, and you stop just in time against a crumb.`},
+      {id:'climb', tag:'hop', label:'Climb up high, out of reach', say:'Up! Climb up!',
+        ok:`You scramble up onto the highest thing around, and the wind rushes by underneath you. From up here you can see the lamp, far away, glowing.`,
+        fail:`You climb, you slip, you climb, you slip. The wind blows you right back down. Wheee. Bump.`}]},
+  {row:'It is too dark to see',
+    intro:(P) => `The lamplight does not reach this far. It is dark under here, the deep, soft kind of dark. You cannot see your own base. Somewhere, something goes drip. Something else goes creak. Probably nothing. Probably.`,
+    approaches:(P) => [
+      {id:'brave', tag:'brave', label:'Walk on bravely and feel the way', say:'"I am not scared," I say. Out loud.',
+        ok:`You put one foot in front of the other and say, out loud, "I am not scared." Saying it makes it true. Soon a thin line of lamplight shows the way ahead.`,
+        fail:`You march bravely forward, right into something fuzzy, and you yelp. It was a dust bunny. That is still embarrassing.`},
+      {id:'find', tag:'find', label:'Find something shiny to catch the light', say:'There has to be something shiny down here.',
+        ok:`You feel around and find a scrap of foil from a snack wrapper. You hold it up, and it catches a tiny bit of lamplight and splashes it everywhere. Now you can see!`,
+        fail:`You find something smooth and shiny and hold it up. It is a raisin. Raisins do not glow.`},
+      {id:'call', tag:'friends', label:'Call out and see who answers', say:'"Hello? Is anyone down here?"',
+        ok:`"Hello?" you call. A sleepy beetle wakes up, grumbles, and turns around. Stuck to its back is a glow-in-the-dark star from somebody's ceiling. "Follow me," it yawns, and lights the way.`,
+        fail:`You call out. The dark calls back, in your own voice. Everyone jumps and bumps heads.`}]},
+  {row:'A friend gets stuck', stuck:true,
+    intro:(P, F) => `"Um," says a small voice. ${F.name} has wedged into a crack, stuck tight, with only the top poking out. "I am fine," says ${F.name}. "I live here now."`,
+    approaches:(P, F) => [
+      {id:'lever', tag:'plans', label:`Use ${P.thing} to pry ${F.name} loose`, say:`Hang on, ${F.name}. I have an idea.`,
+        ok:P.lever + ` ${F.name} is free!`,
+        fail:`You push, you pull, and the plan slips. ${F.name} is still stuck, and now a little bit grumpy.`},
+      {id:'up', tag:'hop', label:'Climb above and pull them up', say:`I am coming up, ${F.name}!`,
+        ok:`You climb up over ${F.name}, reach down, and pull. Up they come, like a carrot out of the garden.`,
+        fail:`You climb up, lean down, and slip. Now you are stuck too, for a little while, upside down.`},
+      {id:'squeeze', tag:'brave', label:'Squeeze into the dark crack beside them', say:`I am coming in after you.`,
+        ok:`You squeeze into the dark crack beside ${F.name}, find the splinter that is holding on, and push it aside. Out you both pop!`,
+        fail:`You squeeze in, but it is so dark and tight that you squeeze right back out again, quick.`}]}];
+
+/* ---------- who you meet (d6) ---------- */
+const WHO = [
+  {row:'A lonely puzzle piece', kind:'lost', name:'The sky piece', lost:'a sky-blue puzzle piece', helpHow:'the sky piece lies flat so you can stand on it',
+    intro:`Sitting all alone on a crumb is a puzzle piece. It is blue all over: no clouds, no birds, nothing but sky. It is looking at its own edges very sadly.`,
+    line:`"Nobody ever knows where I go," it sighs. "I am all sky. Every sky piece looks the same. I have been down here since summer, and the puzzle on the shelf has a hole in it, and nobody even noticed."`,
+    approaches:[
+      {id:'cheer', tag:'friends', label:'Tell it that it matters', say:'"A puzzle with a hole in the sky is the saddest puzzle in the world."',
+        ok:`You tell it that a hole in the sky is the saddest thing a puzzle can have. The piece sits up a little taller. "You really think so?"`,
+        fail:`You try to cheer it up, but you say "all sky pieces look the same" by accident. It sniffles. Oops.`},
+      {id:'look', tag:'find', label:'Look closely for where it fits', say:'Hold still. Let me look at you.',
+        ok:`You turn the piece in the lamplight and find a tiny dot of white on one corner, the tip of a cloud. "You are not just any sky," you say. "You are the sky right next to the cloud."`,
+        fail:`You look and look at its edges, but all that blue makes you dizzy.`},
+      {id:'plan', tag:'plans', label:'Make a plan to get it home', say:'Here is the plan. You ride with us.',
+        ok:`You make a plan: the piece rides along with you, and once you are home, you lean it against the puzzle on the shelf right next to the game box. It wiggles with joy.`,
+        fail:`Your plan has eleven steps. By step six, everyone is confused, including you.`}],
+    success:`"Okay," says the sky piece. "I will come with you." It shuffles along beside you, a little blue square with a big smile. Puzzle pieces can smile. You just have to look.`},
+  {row:'A very polite spider', kind:'lost', name:'Mrs. Threadwell', lost:'the lost Wild card', helpHow:'Mrs. Threadwell lets down a silver thread for you to hold',
+    intro:`A spider lowers herself down on a silver thread, right in front of your face. She has eight eyes and eight legs, and she is wearing, you are fairly sure, a tiny pair of reading glasses.`,
+    line:`"Oh! I do beg your pardon," she says. "I did not mean to startle you. I am Mrs. Threadwell. Would you care for some tea? I believe I have been minding something of yours." In her web, wrapped up neat as a present, is a card from your very own game.`,
+    approaches:[
+      {id:'tea', tag:'friends', label:'Accept her tea, very politely', say:'"Thank you, Mrs. Threadwell. We would love some tea."',
+        ok:`You bow, sip a dewdrop of tea, and say it is the best tea under any couch anywhere. Mrs. Threadwell is so pleased that she unwraps the card for you herself.`,
+        fail:`You try to be polite, but you sneeze right into the teacup. Dewdrops everywhere. She is too polite to say anything, which is worse.`},
+      {id:'climb', tag:'hop', label:'Climb the web to fetch the card', say:'May I climb up and get it? I will be careful.',
+        ok:`You climb the web like a ladder, careful not to break a single thread. She says it is the most considerate climbing she has ever seen.`,
+        fail:`You climb, you stick, you dangle. Mrs. Threadwell untangles you very gently, saying "oh dear, oh dear."`},
+      {id:'fix', tag:'plans', label:'Help her mend a torn corner of the web', say:'Your web is torn. Can we help you fix it?',
+        ok:`You hold the broken threads while she ties them, and soon the web is perfect again. "Fair is fair," she says, and hands you the card.`,
+        fail:`You try to help, but you tie two threads to yourself. Now you are part of the web, for a bit.`}],
+    success:`The card is yours to bring home: the Wild card from your own game, the one everybody looked for all last month. Mrs. Threadwell waves four of her legs goodbye. "Do visit again."`},
+  {row:'A marble who cannot stop rolling', kind:'lost', name:'Zoom', lost:'Zoom the marble', helpHow:'Zoom rolls in and bumps you at just the right moment',
+    intro:`Something comes rolling out of the dark, fast. A glass marble, swirly green inside, as big as a beach ball to you. It zooms past. It zooms back.`,
+    line:`"HI!" it shouts on the way by. "I'M ZOOM! I CAN'T STOP! THE FLOOR IS TILTED! HI AGAIN!"`,
+    approaches:[
+      {id:'roll', tag:'roll', label:'Roll alongside and slow it down', say:'I can roll too! Hang on, Zoom!',
+        ok:`You tip over and roll right beside Zoom, matching speed, bumping gently, until you both coast to a stop. "Whoa," says Zoom. "Thanks. I have been rolling since Tuesday."`,
+        fail:`You roll alongside, Zoom bumps you, and now you are BOTH rolling. It takes a long time to stop.`},
+      {id:'wall', tag:'plans', label:'Build a little wall to catch it', say:'Crumbs! Bring me crumbs! We are building a wall!',
+        ok:`You push crumbs into a little curved wall. Zoom rolls in, goes round once, twice, and stops. "A NEST!" says Zoom.`,
+        fail:`Your wall is perfect. Zoom goes straight over it.`},
+      {id:'talk', tag:'friends', label:'Talk to it, one word each time it passes', say:'Do. You. Want. To. Come. Home?',
+        ok:`Every time Zoom rolls by, you say one word. "Do. You. Want. To. Come. Home?" On the last pass Zoom shouts "YES!" and steers right into you. Clonk. A happy clonk.`,
+        fail:`You talk, but Zoom is too fast to hear the middle of anything. It thinks you said "Do you want a comb?"`}],
+    success:`Zoom is coming home. The marble bag in the game closet has had a Zoom-shaped hole in it for weeks.`},
+  {row:'A grumpy toy dinosaur', kind:'friend', name:'Rexford', helpHow:'Rexford lifts you with his tiny arms',
+    intro:`A plastic dinosaur lies on its side, green and scowling, one tiny arm in the air. It is a T. rex, as tall as a whole tower of you.`,
+    line:`"Go away," it says. "I am being grumpy. I have been grumpy for a long time, and I am very good at it."`,
+    approaches:[
+      {id:'sit', tag:'friends', label:'Sit with it and ask what is wrong', say:'I sit down next to it. "What happened?"',
+        ok:`You sit down beside it and wait. After a long time, it says, "Nobody came looking for me." You say, "We did." Its tiny arms wiggle.`,
+        fail:`You ask what is wrong. "EVERYTHING," it roars. Your friends hide behind you.`},
+      {id:'roar', tag:'brave', label:'Roar right back at it', say:'I take a deep breath and ROAR.',
+        ok:`You ROAR, the biggest roar a thumb-sized pawn has ever roared. The dinosaur blinks. Then it laughs, a big rumbly laugh. "That was terrible," it says. "I love it."`,
+        fail:`You roar. It comes out as a squeak. The dinosaur turns its back.`},
+      {id:'lift', tag:'plans', label:'Work out how to stand it back up', say:'If we all push on the tail at once...',
+        ok:`You all push on the tail at once, and the dinosaur rocks up onto its big feet for the first time in weeks. It stomps around a little, happily.`,
+        fail:`You push, it rocks, and it flops right back down. "See?" it grumbles.`}],
+    success:`"My name is Rexford," says the dinosaur. "I am not going anywhere. Somebody has to guard this couch. But if you ever need a big strong friend, shout, and I will come stomping." He says it grumpily. His tail is wagging, though. Dinosaurs can do that if they want to.`},
+  {row:'Captain Button, a retired coat button', kind:'friend', name:'Captain Button', helpHow:'Captain Button lends his shiny back as a stepping stone',
+    intro:`A large brass button stands at attention beside a crumb, polished to a shine. It has four holes and a little anchor stamped in the middle.`,
+    line:`"Halt! Who goes there?" it booms. "Captain Button, retired, late of a very fine winter coat. Fell off in the great sneeze of last winter. State your business!"`,
+    approaches:[
+      {id:'salute', tag:'friends', label:'Salute and introduce everyone', say:'"Pawns reporting, Captain!"',
+        ok:`You stand up straight and salute. Captain Button salutes back so hard he spins around once. "Splendid! A crew!"`,
+        fail:`You try to salute, but pawns do not have arms. It is confusing for everybody.`},
+      {id:'job', tag:'plans', label:'Ask him to be your lookout', say:'"Captain, we need a lookout. A brave one. A shiny one."',
+        ok:`You explain that your team needs a lookout, a shiny one, a brave one. The Captain's four holes go wide. "A COMMISSION," he says. "I accept."`,
+        fail:`You try to explain the job, but you get all muddled. The Captain asks for it in writing.`},
+      {id:'march', tag:'brave', label:'March right up, bold as anything', say:'I march right up to him, chin high.',
+        ok:`You march right up to him. "That," says the Captain, "is the walk of a true sailor. Permission to join your crew?"`,
+        fail:`You march up boldly and trip over a crumb. "At ease," says the Captain, kindly.`}],
+    success:`"I shall stay at my post," says Captain Button, "but you have a friend in the Navy now. Call for me once, and I will come at full speed." He hums an old sea song as you go. He has never been so proud.`},
+  {row:'An old penny who knows the way', kind:'friend', name:'Old Penny', helpHow:'Old Penny calls out the way: "Left! No, your other left!"',
+    intro:`A penny sits by the path, old and brown and worn smooth from years and years of pockets.`,
+    line:`"Ah," she says, in a voice like a creaky door. "Lost, are you? I have been under this couch since before it was this couch. I know every way out. Nobody ever asks."`,
+    approaches:[
+      {id:'ask', tag:'friends', label:'Ask her to tell you the way', say:'"Would you show us the way, please?"',
+        ok:`She tells you everything: which crumbs are safe, which dust bunnies bite (none, but some are rude). Then she says, "I am too old for game boxes, dear. But I will see you on your way."`,
+        fail:`You ask, and she tells you a story. It is a very long story, about a different couch, a long time ago.`},
+      {id:'roll', tag:'roll', label:'Tip her on her edge and roll her along', say:'Want to go for a roll?',
+        ok:`You tip her onto her edge and roll her along beside you. "Ooh," she says. "I have not rolled in years." She giggles all the way.`,
+        fail:`You tip her up, and she rolls off without you. You chase her a long way.`},
+      {id:'map', tag:'plans', label:'Draw her a map of the house in the dust', say:'Here, I will draw where we need to go.',
+        ok:`You draw the whole house in the dust: the couch, the lamp, the box. She studies it for a long time. "Clever," she says. "Now I can show you exactly where to go."`,
+        fail:`Your map is lovely, but you drew the couch upside down. She turns it around for you, slowly.`}],
+    success:`"Well then," says Old Penny. "I will stay here, where it is cozy. But call me once when you are lost, and I will tell you which way to go." Then she adds, "Left at the big crumb. It is always left at the big crumb."`}];
+
+const CLIMB = [
+  {id:'wall', tag:'hop', label:'Climb the cardboard wall', say:'I find the bumps in the cardboard and start climbing.',
+    ok:`You find the little bumps where the cardboard folds and climb them like a ladder: up, up, up, over the edge, and down with a soft clack onto the game board. You are in!`,
+    fail:`You climb halfway, look down, and slide all the way back to the floor. Fwump.`},
+  {id:'ramp', tag:'plans', label:'Pull the rulebook down as a ramp', say:'The rulebook is sticking out. I can make a ramp!',
+    ok:`The rulebook has slipped half out of the box. You tug its corner down to the floor, and now there is a ramp. You walk right up it like a grand staircase and drop inside. You are in!`,
+    fail:`You tug the rulebook, and it flops the wrong way. Flap.`},
+  {id:'lid', tag:'roll', label:'Roll up the leaning lid, fast', say:'Way back, everyone. I need a running start.',
+    ok:`You start way back, tip over, and roll, faster and faster, up the leaning lid, off the top, through the air, and PLONK into the box. You are in!`,
+    fail:`You roll up the lid, slow, slower, stop, and roll all the way back down. So close.`}];
+
+/* ---------- state ---------- */
+const S = {met:[], pawn:null, friends:[], extra:[], lid:0, shortcuts:0, lost:[], route:[], step:-1, usedPlace:new Set(), usedProb:new Set(), usedWho:new Set(), wob:0, home:false};
+const used = new Set();
+class LidClosed extends Error {}
+
+/* ---------- log ---------- */
+function add(cls, html){ const el = document.createElement('div'); if (cls) el.className = cls; el.innerHTML = html; logEl.appendChild(el); if (!replaying()) requestAnimationFrame(() => el.scrollIntoView({block:'nearest', behavior: reduced ? 'auto' : 'smooth'})); return el; }
+const nar = h => add('line', h);
+const npc = (who, h) => add('line npc', `<span class="who">${who}</span>${h}`);
+const you = h => add('line you', h);
+const rule = h => add('rule', h);
+const ruleOnce = (k, h) => { if (used.has('rule-' + k)) return; used.add('rule-' + k); rule(h); };
+function scene(num, name, sub){ $('#sceneName').textContent = name; add('scenebreak', `<small>${num ? `<i>${num}</i>` : ''}${sub || 'Under the Couch'}</small>${esc(name)}`); render(); }
+
+function choose(opts, o2 = {}){
+  if (replaying() && !o2.norecord){
+    const a = replay.shift(); const o = opts.find(x => x.id === a && !x.disabled);
+    if (o){ record(a); if (o.say !== false) you(esc(o.say || o.label)); return Promise.resolve(a); }
+    replay.length = 0; finishReplay();
+  }
+  return new Promise(res => {
+    choicesEl.innerHTML = '';
+    opts.forEach(o => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt' + (o.cls ? ' ' + o.cls : '');
+      if (o.sw) b.style.setProperty('--sw', o.sw);
+      b.innerHTML = `<b>${esc(o.label)}</b>${o.sub ? `<span>${esc(o.sub)}</span>` : ''}`; if (o.disabled) b.disabled = true;
+      b.addEventListener('click', () => { choicesEl.innerHTML = ''; if (!o2.norecord) record(o.id); if (o.say !== false) you(esc(o.say || o.label)); res(o.id); });
+      choicesEl.appendChild(b);
+    });
+    requestAnimationFrame(() => choicesEl.scrollIntoView({block:'nearest', behavior: reduced ? 'auto' : 'smooth'}));
+    const first = choicesEl.querySelector('button:not(:disabled)'); if (first && matchMedia('(pointer:fine)').matches) first.focus({preventScroll:true});
+  });
+}
+const cont = (label = 'Continue') => choose([{id:'c', label, cls:'primary', say:false}]);
+async function waitRoll(sub, label){
+  if (replaying()){ replay.shift(); record('r'); return; }
+  if (autoRoll){ record('r'); await sleep(250); return; }
+  await choose([{id:'r', label: label || 'Roll the dice', sub, cls:'roll', say:false}]);
+}
+function finishReplay(){ requestAnimationFrame(() => { const last = logEl.lastElementChild; if (last) last.scrollIntoView({block:'nearest'}); }); }
+
+function askName(){
+  if (replaying()){ const v = replay.shift(); record(v); you(`My name is ${esc(v)}.`); return Promise.resolve(v); }
+  return new Promise(res => {
+    const ph = NAME_IDEAS[Math.floor(Math.random() * NAME_IDEAS.length)];
+    choicesEl.innerHTML = `<form class="nameform" novalidate><label for="pawnName">Your pawn's name</label><div class="nf-row"><input id="pawnName" maxlength="20" autocomplete="off" spellcheck="false" placeholder="${ph}"><button class="opt primary" type="submit"><b>That's my name</b></button></div><div class="suggest" role="group" aria-label="Name ideas">Or pick one: ${NAME_IDEAS.map(n => `<button type="button" data-n="${n}">${n}</button>`).join('')}</div></form>`;
+    const f = choicesEl.querySelector('form'), inp = f.querySelector('input');
+    const done = v => { v = (v || '').replace(/\s+/g, ' ').trim().slice(0, 20) || ph; choicesEl.innerHTML = ''; record(v); you(`My name is ${esc(v)}.`); res(v); };
+    f.addEventListener('submit', e => { e.preventDefault(); done(inp.value); });
+    f.querySelectorAll('[data-n]').forEach(b => b.addEventListener('click', () => done(b.dataset.n)));
+    requestAnimationFrame(() => choicesEl.scrollIntoView({block:'nearest', behavior: reduced ? 'auto' : 'smooth'}));
+    if (matchMedia('(pointer:fine)').matches) inp.focus({preventScroll:true});
+  });
+}
+
+/* ---------- dice ---------- */
+const PIPS = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function dieEl(label, extra){ const w = document.createElement('div'); w.className = 'dwrap'; const e = document.createElement('div'); e.className = 'd6 ghost' + (extra ? ' extra' : ''); e.setAttribute('role', 'img'); e.setAttribute('aria-label', 'd6, not rolled yet'); for (let i = 0; i < 9; i++) e.appendChild(document.createElement('i')); const l = document.createElement('span'); l.className = 'dlabel'; l.textContent = label; w.append(e, l); return {w, e}; }
+function face(e, v){ [...e.children].forEach((p, i) => p.style.visibility = (PIPS[v] || []).includes(i) ? 'visible' : 'hidden'); e.setAttribute('aria-label', 'd6 showing ' + v); }
+async function tumble(es){ const n = (reduced || replaying()) ? 1 : 9; es.forEach(e => e.classList.add('tumble')); for (let t = 0; t < n; t++){ es.forEach(e => face(e, look())); await sleep(60); } es.forEach(e => e.classList.remove('tumble')); }
+
+/* The roll: success if the lucky number shows OR any two dice match. Both at once: amazing style. */
+function judge(vals, L){
+  const count = {}; vals.forEach(v => count[v] = (count[v] || 0) + 1);
+  const lucky = vals.includes(L), pair = Object.values(count).some(c => c >= 2);
+  return {lucky, pair, ok: lucky || pair, style: lucky && pair, count};
+}
+// dice: array of labels. click: wait for the player's click first.
+async function rollDice(dice, L, label, opts = {}){
+  const row = add('rollrow' + (opts.gm ? ' gm' : ''), `<span class="lbl">${label}</span>`);
+  const dz = document.createElement('div'); dz.className = 'dice'; row.appendChild(dz);
+  const els = dice.map((x, i) => dieEl(x, i >= 3)); els.forEach(x => dz.appendChild(x.w));
+  if (opts.click) await waitRoll(opts.sub || `${dice.length} dice, lucky number ${L}`, opts.btn);
+  else await sleep(350);
+  els.forEach(x => x.e.classList.remove('ghost'));
+  await tumble(els.map(x => x.e));
+  const vals = els.map(() => d6());
+  const j = judge(vals, L);
+  vals.forEach((v, i) => { const e = els[i].e; face(e, v); if (v === L) e.classList.add('lucky'); if (j.count[v] >= 2) e.classList.add('pair'); if (v !== L && j.count[v] < 2) e.classList.add('miss'); });
+  const why = j.style ? `your lucky ${L} AND a matching pair` : j.lucky ? `lucky ${L} shows` : j.pair ? 'a matching pair' : `no ${L}, no pair`;
+  const sc = document.createElement('span'); sc.className = 'score'; sc.textContent = `Rolled ${vals.join(', ')}: ${why}`; row.appendChild(sc);
+  const st = document.createElement('span'); st.className = 'result ' + (j.style ? 'style' : j.ok ? 'ok' : 'bad'); st.textContent = j.style ? 'Amazing style!' : j.ok ? 'You do it!' : 'Not yet'; row.appendChild(st);
+  if (opts.gm) st.textContent = j.style ? 'Amazing style!' : j.ok ? 'Made it!' : 'Not yet';
+  if (dice.length >= 5) used.add('five');
+  return {vals, ...j};
+}
+
+/* ---------- the Lid Track ---------- */
+function mark(why){
+  S.lid = Math.min(10, S.lid + 1); used.add('lid'); render();
+  add('', `<span class="result n">Lid Track: box ${S.lid} marked (${S.lid}/10)${why ? ', ' + esc(why) : ''}</span>`);
+  if (S.lid >= 10) throw new LidClosed();
+  if (S.lid === 7) nar(`Up above, someone yawns a big yawn. "Almost time to pack up," says a grown-up. The lid is getting close.`);
+}
+function erase(thing){
+  ruleOnce('home', `Bring them home: when you help a lost thing come back too, erase one marked box on the Lid Track.`);
+  used.add('erase');
+  if (S.lid > 0){ S.lid--; render(); add('', `<span class="result erase">Box erased: ${esc(thing)} is coming home (${S.lid}/10)</span>`); }
+  else add('', `<span class="result erase">${esc(thing)} is coming home (no boxes marked yet, so nothing to erase)</span>`);
+}
+
+/* ---------- helpers ---------- */
+const helpers = () => [...S.friends, ...S.extra].filter(h => h.uses > 0);
+const howHelp = (h, tag) => h.how ? h.how : `${h.name} ${HELPHOW[tag]}`;
+
+/* A tricky moment for your pawn. Returns {a, style}. */
+async function tricky(approaches){
+  const P = S.pawn, tried = new Set();
+  while (true){
+    let avail = approaches.filter(a => !tried.has(a.id)); if (!avail.length){ tried.clear(); avail = approaches; }
+    const pick = await choose(avail.map(a => ({id:a.id, label:a.label, cls: a.tag === P.great ? 'great' : '', say:a.say,
+      sub: a.tag === P.great ? `${GREAT[a.tag]} · you are great at this: +1 die` : GREAT[a.tag]})));
+    const a = approaches.find(x => x.id === pick);
+    const dice = ['roll', 'roll', 'roll'];
+    ruleOnce('roll', `When something is tricky, roll three dice. If your lucky number (${P.lucky}) shows, or any two dice match, you do it!`);
+    if (a.tag === P.great){ dice.push('great at'); used.add('great'); ruleOnce('great', `You are great at ${GREAT[a.tag].toLowerCase()}, and that fits what you are doing: add one die.`); }
+    const hs = helpers(); let click = true;
+    if (hs.length){
+      ruleOnce('help', `A friend can help: they say how, and you add one more die. Never more than five dice. In this game, ${S.friends[0].name} and ${S.friends[1].name} can each help twice, so save them for when it counts.`);
+      const opts = [{id:'roll', label:`Roll ${dice.length} dice`, sub:`Lucky number ${P.lucky}, or any pair`, cls:'roll', say:false}];
+      hs.forEach(h => opts.push({id:'h-' + h.key, label:`Ask ${h.name} to help`, cls:'help', say:`${h.name}, can you help?`, sub:`+1 die. ${h.uses} help${h.uses === 1 ? '' : 's'} left.`}));
+      const c = await choose(opts);
+      if (c === 'roll') click = false;
+      else {
+        const h = hs.find(x => 'h-' + x.key === c); h.uses--; used.add('help'); render();
+        nar(`${esc(howHelp(h, a.tag))}.`);
+        dice.push('help');
+      }
+    }
+    const r = await rollDice(dice, P.lucky, `${esc(P.name)}: ${esc(a.label)} (${dice.length} dice, lucky ${P.lucky})`, {click});
+    if (r.lucky) used.add('lucky'); if (r.pair) used.add('pair');
+    if (r.ok){
+      if (r.style){ used.add('style'); ruleOnce('style', `Both at once, your lucky number AND a matching pair: you do it in amazing style. The GM gives the whole team a treat, like a shortcut or a new friend.`); }
+      return {a, style:r.style};
+    }
+    used.add('fail');
+    nar(a.fail);
+    ruleOnce('fail', `Neither one: it does not work yet. Mark one box on the Lid Track and say how you wobble. Then you can try again, a new way.`);
+    mark('a wobble');
+    tried.add(a.id);
+    nar(`You shake it off. Time to try a new way.`);
+  }
+}
+
+/* A GM-run friend tries the same thing. */
+async function friendTry(F, tag, what){
+  ruleOnce('gm', `GM pawns roll too. The page rolls for ${S.friends[0].name} and ${S.friends[1].name} by the same rules: three dice, plus one if they are great at it.`);
+  while (true){
+    const dice = ['roll', 'roll', 'roll']; if (F.great === tag) dice.push('great at');
+    const r = await rollDice(dice, F.lucky, `GM rolls for ${F.name}: ${esc(what)} (${dice.length} dice, lucky ${F.lucky})`, {gm:true});
+    if (r.ok){
+      if (r.style) nar(`${F.name} does it in amazing style, with a twirl at the end, and takes a little bow.`);
+      return;
+    }
+    nar(F.wobble[S.wob++ % F.wobble.length]);
+    mark(`${F.name} wobbles`);
+  }
+}
+
+/* GM table roll, with no repeats */
+async function draw(name, table, usedSet){
+  while (true){
+    const row = add('rollrow gm', `<span class="lbl">GM rolls: ${name} (d6)</span>`);
+    const dz = document.createElement('div'); dz.className = 'dice'; row.appendChild(dz);
+    const {w, e} = dieEl('table'); dz.appendChild(w); e.classList.remove('ghost');
+    await sleep(200); await tumble([e]); const v = d6(); face(e, v);
+    used.add('table');
+    if (usedSet.has(v)){ add('tbl', `<b>${v}.</b> ${esc(table[v - 1].row)}: done that already. Roll again.`); continue; }
+    usedSet.add(v); add('tbl', `<b>${v}.</b> ${esc(table[v - 1].row)}`);
+    return table[v - 1];
+  }
+}
+
+/* ---------- sheet ---------- */
+const pawnSvg = (hex, cls = '') => `<svg class="${cls}" viewBox="0 0 40 56" aria-hidden="true"><circle cx="20" cy="11" r="8.5" fill="${hex}" stroke="#2B1E16" stroke-width="2"/><path d="M14 20h12l5 24H9z" fill="${hex}" stroke="#2B1E16" stroke-width="2" stroke-linejoin="round"/><rect x="4" y="43" width="32" height="9" rx="4.5" fill="${hex}" stroke="#2B1E16" stroke-width="2"/></svg>`;
+function render(){
+  const lid = S.lid;
+  $('#lidCount').textContent = `${lid}/10`;
+  $('#boxes').innerHTML = Array.from({length:10}, (_, i) => `<i class="${i < lid ? 'on' : ''}"></i>`).join('');
+  $('#boxes').setAttribute('aria-label', `Lid Track: ${lid} of 10 boxes marked`);
+  $('#lidG').style.transform = `rotate(${-(72 * (1 - lid / 10))}deg)`;
+  const names = ['First place', 'Second place', 'Third place'];
+  $('#route').innerHTML = [0, 1, 2, 3].map(i => {
+    const nm = i === 3 ? 'The climb into the box' : (S.route[i] || names[i] + ': not rolled yet');
+    const st = i < S.step || (S.home && i === 3) ? 'done' : i === S.step ? 'now' : '';
+    return `<li class="${st}"><i>${i === 3 ? '★' : i + 1}</i>${esc(nm)}</li>`; }).join('');
+  if (S.friends.length) $('#friends').innerHTML = [...S.friends, ...S.extra].map(h => `<li><span class="fn">${h.hex ? pawnSvg(h.hex) : ''}<span>${esc(h.name)}<small>${h.lucky ? `Lucky ${h.lucky} · ${esc(GREAT[h.great])}` : 'a new friend'}</small></span></span><span class="helps" aria-label="${h.uses} helps left">${Array.from({length:h.max}, (_, i) => `<i class="${i < h.uses ? 'on' : ''}"></i>`).join('')}</span></li>`).join('');
+  if (S.lost.length) $('#lost').innerHTML = S.lost.map(t => `<li>${esc(t)}</li>`).join('');
+  $('#lostCount').textContent = S.lost.length;
+  const P = S.pawn; if (!P) return;
+  $('#sumName').innerHTML = `${pawnSvg(P.hex)}${esc(P.name)}`;
+  $('#sumMini').textContent = `Lucky ${P.lucky || '?'} · Lid ${lid}/10`;
+  $('#pawnCard').innerHTML = `<div class="card">${pawnSvg(P.hex)}<div class="pn">${esc(P.name)}</div>
+    <div class="ln">A ${esc(P.colorName.toLowerCase())} wooden pawn</div>
+    <div class="ln"><b>Lucky number:</b> ${P.lucky || '?'}</div>
+    <div class="ln"><b>Great at:</b> ${P.great ? esc(GREAT[P.great]) : '?'}</div>
+    <div class="ln" style="grid-column:1/-1"><b>Silly habit:</b> ${P.habit ? esc(P.habit.label) : '?'}</div></div>`;
+}
+
+/* ---------- the game ---------- */
+async function makePawn(){
+  scene(0, 'Game night, almost over', 'Prologue');
+  nar(`Game night is almost over. Up on the table, everyone is laughing about the last roll of the night. Somebody rolled double sixes, jumped up, and cheered, and the whole table jumped too.`);
+  nar(`And you, a small wooden pawn, went flying. Up, over the edge, through the air, and down, down, <em>bounce</em>, into the dark, dusty land under the couch.`);
+  rule(`Under the Couch is a whole roleplaying game on one page. Here you play it solo: the page is your GM. It describes the world, plays everyone you meet, and rolls for them. You decide what your pawn does.`);
+  await cont('Dust yourself off');
+  rule(`Make a pawn: pick a color and a name, a lucky number from 1 to 6, and one thing you are great at. Then add one silly habit.`);
+  nar(`First things first. What color are you?`);
+  const col = await choose(COLORS.map(c => ({id:c.id, label:c.name, cls:'swatch small', sw:c.hex, say:`I am a ${c.name.toLowerCase()} pawn.`})));
+  const C = COLORS.find(c => c.id === col);
+  S.pawn = {colorName:C.name, hex:C.hex, name:'?'}; used.add('create'); render();
+  nar(`And what is your name?`);
+  S.pawn.name = await askName(); render();
+  nar(`Now pick your <strong>lucky number</strong>. It matters on every roll you make.`);
+  ruleOnce('lucky', `Your lucky number is from 1 to 6. Every pawn tries to have a different one, so your friends will take the others.`);
+  const ln = await choose([1,2,3,4,5,6].map(n => ({id:String(n), label:String(n), cls:'small', say:`My lucky number is ${n}.`})).concat([{id:'roll', label:'Roll for it', cls:'small', say:'I will let the die decide.'}]));
+  if (ln === 'roll'){ const r = await rollDie1('Your lucky number'); S.pawn.lucky = r; nar(`Your lucky number is <strong>${r}</strong>.`); }
+  else S.pawn.lucky = Number(ln);
+  render();
+  nar(`What are you great at? Choose one, or roll for it.`);
+  const gopts = GREAT_ORDER.map((k, i) => ({id:k, label:GREAT[k], sub:`d6 roll of ${i + 1}`, say:`I am great at ${GREAT[k].toLowerCase()}.`}));
+  gopts.push({id:'roll', label:'Roll for it', sub:'Let the die decide', say:'Let the die decide what I am great at.'});
+  const g = await choose(gopts);
+  if (g === 'roll'){ const r = await rollDie1('What you are great at'); S.pawn.great = GREAT_ORDER[r - 1]; nar(`<strong>${r}</strong>: you are great at ${GREAT[S.pawn.great].toLowerCase()}.`); }
+  else S.pawn.great = g;
+  ruleOnce('greatpick', `Whatever you are great at gives you an extra die whenever it fits what you are doing. Choices that fit are marked with a green edge.`);
+  render();
+  nar(`Last thing. Every pawn has one silly habit. What is yours?`);
+  const hb = await choose(HABITS.map(h => ({id:h.id, label:h.label, say:`I ${h.line}.`})));
+  S.pawn.habit = HABITS.find(h => h.id === hb);
+  // the friends: different lucky numbers, colors, and great-ats from yours
+  const freeNums = [1,2,3,4,5,6].filter(n => n !== S.pawn.lucky);
+  const pickN = [freeNums[1], freeNums[3]];
+  FRIEND_BASE.forEach((f, i) => {
+    const great = f.greats.find(x => x !== S.pawn.great);
+    const cid = f.colors.find(c => c !== col);
+    S.friends.push({...f, great, lucky:pickN[i], hex:COLORS.find(c => c.id === cid).hex, uses:2, max:2});
+  });
+  render();
+  const [A, B] = S.friends;
+  nar(`<em>Plink. Plonk.</em> Two more pawns land in the dust beside you. They fell too.`);
+  npc(A.name, `"Hi! I am ${A.name}. I am great at ${GREAT[A.great].toLowerCase()}, and my lucky number is ${A.lucky}. I hum when I am nervous. Hmm hmm hmmm. I am a little nervous."`);
+  npc(B.name, `"I am ${B.name}. Lucky ${B.lucky}. Great at ${GREAT[B.great].toLowerCase()}. I count everything. That is three of us. Three is a good number."`);
+  nar(`${esc(S.pawn.name)} ${esc(S.pawn.habit.line)}, and ${A.name} and ${B.name} decide they like you already.`);
+  await cont('Look around');
+}
+async function rollDie1(what){
+  const row = add('rollrow', `<span class="lbl">${what} (d6)</span>`);
+  const dz = document.createElement('div'); dz.className = 'dice'; row.appendChild(dz);
+  const {w, e} = dieEl('d6'); dz.appendChild(w);
+  await waitRoll('One die', 'Roll one die');
+  e.classList.remove('ghost'); await tumble([e]); const v = d6(); face(e, v); return v;
+}
+
+async function theWayBack(){
+  scene(0, 'Under the couch', 'The way back');
+  nar(`It is dim under here, and enormous. Far off, past the edge of the couch, you can see a slice of warm lamplight. And in it, sitting on the floor, is the game box, with its lid leaning against the side.`);
+  nar(`Soon somebody will tidy up. When the lid goes on, anyone who is not inside gets left behind until morning.`);
+  rule(`The Lid Track has ten boxes. Mark one when a roll fails, and one each time the team leaves a place. When all ten are marked, the lid closes. Watch it on your sheet: the lid drops a little with every mark.`);
+  rule(`Tiny and brave: you are as tall as a thumb. A crumb is a boulder. A sock is a cave. A coin is a shiny bridge. Giant everyday things can be used in clever ways.`);
+  rule(`The way back: visit three places, then make the climb into the box. The GM rolls for each place, its problem, and who you meet.`);
+  await cont('Head for the light');
+}
+
+async function place(i){
+  S.step = i;
+  const P = await draw('Place', PLACES, S.usedPlace);
+  S.route[i] = P.name;
+  scene(i + 1, P.name, `Place ${i + 1} of 3`);
+  nar(P.arrive);
+  nar(P.look);
+  const F = S.friends[i % 2];
+  await cont('Keep going');
+  const prob = await draw('Problem', PROBLEMS, S.usedProb);
+  nar(prob.intro(P, F));
+  if (i === 0) nar(`What do you do?`);
+  const r = await tricky(prob.approaches(P, F));
+  nar(r.a.ok);
+  if (r.style){ used.add('shortcut'); S.shortcuts++; render(); nar(`Treat for the team: a shortcut! From where you landed, you can see a straight path out of here. You will leave ${P.name} without marking the Lid Track.`); }
+  if (!prob.stuck){
+    const other = S.friends.find(x => x !== F);
+    nar(`Now your friends come after you, your way. ${other.name} goes right behind you, copying every step. ${F.name} goes last, and that is the tricky part.`);
+    await friendTry(F, r.a.tag, r.a.label);
+    nar(`${F.name} makes it. Everyone cheers, quietly, because grown-ups have big ears.`);
+  } else {
+    nar(`${F.name} dusts off. "Thank you," says ${F.name}. "I did not really want to live there."`);
+  }
+  await cont('Who is that?');
+  const W = await draw('Who you meet', WHO, S.usedWho);
+  nar(W.intro);
+  npc(W.name, W.line);
+  const m = await tricky(W.approaches);
+  nar(m.a.ok);
+  nar(W.success);
+  if (W.kind === 'lost'){
+    S.lost.push(W.lost); render();
+    erase(W.lost);
+    if (m.style){ used.add('newfriend'); S.extra.push({key:'x' + i, name:W.name, how:W.helpHow, uses:1, max:1}); render(); nar(`Treat for the team: a new friend! ${W.name} will help once, any time you ask.`); }
+  } else {
+    used.add('newfriend'); S.met.push(W.name);
+    const n = m.style ? 2 : 1;
+    S.extra.push({key:'x' + i, name:W.name, how:W.helpHow, uses:n, max:n}); render();
+    ruleOnce('newfriend', `Not everyone you meet is lost. Some stay under the couch, but become new friends who can help. A new friend adds one die, just like ${S.friends[0].name} or ${S.friends[1].name}.`);
+    add('', `<span class="result ok">New friend: ${esc(W.name)} can help ${n === 1 ? 'once' : 'twice'}</span>`);
+    if (m.style) nar(`Amazing style, so here is a treat: ${W.name} likes you so much that they will help twice, not once.`);
+  }
+  await cont(`Leave ${P.name}`);
+  nar(P.leave);
+  if (S.shortcuts > 0){ S.shortcuts--; render(); add('', `<span class="result erase">Shortcut! No box marked for leaving</span>`); }
+  else { ruleOnce('leave', `Each time the team leaves a place, mark one box on the Lid Track.`); used.add('leave'); mark('leaving ' + P.name); }
+  S.step = i + 1; render();
+}
+
+async function theClimb(){
+  S.step = 3;
+  scene('★', 'The Climb', 'Home stretch');
+  nar(`And there it is. The box sits on the floor at the edge of the couch, huge as a house: a cardboard wall taller than ten of you, with the picture of your game on the side. The lid leans against it, waiting. The rulebook sticks out of the top.`);
+  nar(`Up above, a grown-up voice says, "Okay, let's pack it up."`);
+  rule(`The climb: to get in, every pawn makes one last roll. Friends can still help. Every failed roll still marks the Lid Track.`);
+  used.add('climb');
+  const r = await tricky(CLIMB);
+  nar(r.a.ok);
+  for (const F of S.friends){
+    if (r.style){ used.add('shortcut'); nar(`Treat for the team: you made it in amazing style, so you lean right over the edge and catch ${F.name} as they jump. Swoop. ${F.name} is in!`); continue; }
+    nar(`${F.name} looks up at you from the floor. "Little help?"`);
+    await choose([{id:'h', label:`Reach down and help ${F.name}`, sub:`+1 die for ${F.name}`, cls:'help', say:`Grab on, ${F.name}! I have got you.`}]);
+    used.add('help');
+    let tries = 0;
+    while (true){
+      const dice = ['roll', 'roll', 'roll']; if (F.great === 'hop') dice.push('great at'); dice.push('your help');
+      const res = await rollDice(dice, F.lucky, `GM rolls for ${F.name}: the climb (${dice.length} dice, lucky ${F.lucky})`, {gm:true});
+      if (res.ok){ nar(tries ? `This time ${F.name} grabs on tight, and up they come. ${F.name} is in!` : `${F.name} grabs on, and you pull, and up they come. ${F.name} is in!`); break; }
+      tries++;
+      nar(F.wobble[S.wob++ % F.wobble.length]);
+      mark(`${F.name} slips`);
+    }
+  }
+  S.home = true; render();
+  await homeEnd();
+}
+
+/* ---------- endings ---------- */
+const lostList = () => { const l = S.lost; return l.length === 0 ? '' : l.length === 1 ? l[0] : l.slice(0, -1).join(', ') + ', and ' + l[l.length - 1]; };
+async function homeEnd(){
+  $('#sceneName').textContent = 'Home';
+  const L = lostList();
+  if (L) nar(`Behind you come the lost things: ${esc(L)}. One by one they climb, or roll, or get carried in.`);
+  nar(`<em>Whump.</em> The lid comes down softly, and it is dark. But it is the good kind of dark: the dark of home, with everyone in it. ${S.friends[1].name} counts. "One, two, three." Everyone is here.`);
+  nar(`Somewhere near the dice, a voice whispers, "Where have you BEEN?" And you smile, the way pawns smile, which is on the inside.`);
+  await ending(true);
+}
+async function lidEnd(){
+  $('#sceneName').textContent = 'The lid closes';
+  add('scenebreak', `<small>The Lid Track is full</small>Found tomorrow`);
+  nar(`Up above, somebody says, "Got everything?" Somebody else says, "Yep." The lid slides on with a soft cardboard <em>whump</em>, and the living room lights click off. You are not in the box.`);
+  const L = lostList();
+  nar(`But you are not alone, either. You and ${S.friends[0].name} and ${S.friends[1].name}${L ? ', and ' + esc(L) + ',' : ''} curl up together in the dust. The dog's nose comes by once in the night to check on you, like a big wet night guard. ${S.friends[0].name} hums you all to sleep.`);
+  nar(`In the morning, sunlight pours under the couch like warm honey. A hand comes feeling around, a small hand, a kid's hand, looking for a shoe. It finds the shoe. It also finds you. "Hey!" says the kid. "The pawns!"${S.met.includes('Rexford') ? ` And then, "REXFORD! I looked everywhere for you!"` : ''} Plink, plonk, into the box you go, every one of you.`);
+  nar(`That night, the other pieces gather round: the dice, the cards, the little wooden houses. You tell them all about it. Nobody believes a word. You do not mind. You were there.`);
+  await ending(false);
+}
+async function ending(home){
+  clearSave();
+  const P = S.pawn;
+  const ALL = [['create','Making a pawn'],['lucky','Your lucky number showing'],['pair','A matching pair'],['style','Amazing style (both at once)'],['fail','A wobble, then a new way'],['great','The great-at die'],['help','Help from a friend'],['five','Rolling five dice'],['lid','Marking the Lid Track'],['erase','Bringing a lost thing home'],['shortcut','A shortcut treat'],['newfriend','A new friend treat'],['table','GM table rolls'],['climb','The climb']];
+  const visited = S.route.filter(Boolean);
+  add('endcard', `
+    <h3>${home ? 'Home, together. You win!' : 'Found tomorrow. Still a win.'}</h3>
+    <p>${esc(P.name)} the ${esc(P.colorName.toLowerCase())} pawn ${home ? 'made it into the box' : 'spent one night under the couch and came home with a story'}, with ${S.lid} of 10 boxes marked on the Lid Track${visited.length ? `, by way of ${esc(visited.join(', '))}` : ''}. ${S.lost.length ? `${S.lost.length} lost thing${S.lost.length === 1 ? '' : 's'} came home too.` : ''}</p>
+    <p>${home ? 'That is the whole game. It plays even better around a real table, with real friends being the other pawns and one person playing the GM.' : 'Nobody is ever lost forever in this game. Play again and beat the lid. It plays even better around a real table, with real friends being the other pawns.'}</p>
+    <div class="endlinks">
+      <a class="cta" href="https://theludarium.com/articles/one-page-rpgs/">Get the printable one-page rules free<small>For 2 to 5 players and a GM, about an hour. Five dice and some index cards.</small></a>
+      <a class="alt" href="https://theludarium.com/store/">Ten more games like this: Game Night One-Pagers<small>One-page RPGs for game night, from The Ludarium store</small></a>
+    </div>
+    <ul class="learned" aria-label="Rules you used">${ALL.map(([k, t]) => `<li class="${used.has(k) ? '' : 'no'}">${t}</li>`).join('')}</ul>
+    <p class="fine">Under the Couch is a Game Night One-Pager by The Ludarium. © 2026 The Ludarium.</p>`);
+  const c = await choose([{id:'again', label:'Play again', sub:'New places, new problems, new friends', cls:'primary', say:false}], {norecord:true});
+  if (c === 'again'){ clearSave(); location.reload(); }
+}
+
+async function game(){
+  try {
+    await makePawn();
+    await theWayBack();
+    for (let i = 0; i < 3; i++) await place(i);
+    await theClimb();
+  } catch (e){
+    if (e instanceof LidClosed) await lidEnd(); else throw e;
+  }
+}
+
+async function boot(){
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch(e){ saved = null; }
+  if (saved && saved.v === 1 && Array.isArray(saved.answers) && saved.answers.length > 2 && typeof saved.seed === 'number'){
+    nar(`Welcome back. Your pawn is still under the couch, right where you left it.`);
+    const c = await choose([{id:'resume', label:'Pick up where you left off', cls:'primary', say:false}, {id:'new', label:'Start a new pawn', say:false}], {norecord:true});
+    logEl.innerHTML = '';
+    if (c === 'resume'){ seed = saved.seed; replay = saved.answers.slice(); }
+  }
+  if (!replaying()){ clearSave(); seed = Math.floor(Math.random() * 2147483647); }
+  rnd = mulberry(seed);
+  game();
+}
+
+if (matchMedia('(max-width: 880px)').matches) $('#sheet').open = false;
+render();
+boot();
+})();
+</script>
+</body>
+</html>

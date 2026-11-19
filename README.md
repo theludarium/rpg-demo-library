@@ -17,6 +17,9 @@ Try-before-you-buy demos of tabletop roleplaying games. Each demo is a short int
 | Dungeon World | The Salt King's Stair, Act One | `games/dungeon-world/` |
 | Cypher System | The Glass Comet, Act One | `games/cypher/` |
 | ORC License (fantasy) | The Sleepless Mill, Act One | `games/pf2e/` |
+| Under the Couch (The Ludarium) | Under the Couch (solo, ~15 min) | `games/under-the-couch/` |
+| Everyone Is John | John's Big Tuesday (solo, ~20 min) | `games/everyone-is-john/` |
+| Roll for Shoes | The Golden Shoe Job (solo, ~20 min) | `games/roll-for-shoes/` |
 
 ## Structure
 
@@ -71,3 +74,15 @@ This product is an independent production and is not affiliated with Monte Cook 
 ### The Sleepless Mill (ORC License)
 
 The Sleepless Mill uses game mechanics from Pathfinder Player Core and Pathfinder GM Core © 2023, Paizo Inc., under the ORC License (paizo.com/orclicense). It is not an official Pathfinder product and is not published, endorsed, or approved by Paizo Inc. It uses no Paizo art, logos, setting, or trade dress. The adventure, setting, and characters are © 2026 RPG Demo Library, and its new game mechanics are released under the ORC License.
+
+### Under the Couch
+
+Under the Couch is a Game Night One-Pager, an original game by The Ludarium. © 2026 The Ludarium, all rights reserved. The printable one-page rules are free from theludarium.com.
+
+### Everyone Is John
+
+John's Big Tuesday is based on Everyone Is John © 2002 by Michael Sullivan (overlycommonname.github.io/john.html), licensed under CC BY 4.0 (creativecommons.org/licenses/by/4.0/). Rules restated in our own words. This is not an official Everyone Is John product and is not affiliated with or endorsed by Michael Sullivan. Demo text © 2026 RPG Demo Library.
+
+### Roll for Shoes
+
+The Golden Shoe Job is based on Roll for Shoes by Ben Wray (rollforshoes.com), dedicated to the public domain under CC0 1.0. Rules restated in our own words. Not an official Roll for Shoes product. The adventure is © 2026 RPG Demo Library.
